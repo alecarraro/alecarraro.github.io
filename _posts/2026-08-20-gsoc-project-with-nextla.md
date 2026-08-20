@@ -120,13 +120,10 @@ C_{\mathrm{tlr}}
 \operatorname{gemm}(A_{\mathrm{tlr}}, B_{\mathrm{tlr}}),
 $$
 
-so the product does not have to be materialized as a dense matrix.
+so the product does not have to be materialized as a dense matrix. The API also exposes the controls needed for real workloads: transpose combinations, mixed-precision compute modes, workspace limits, and workspace
+reuse.
 
-The API also exposes the controls needed for real GPU workloads: transpose
-combinations, mixed-precision compute modes, workspace limits, and workspace
-reuse. The implementation details below explain how those operations are
-scheduled, but the user-facing result is simple: construct compressed
-matrices, multiply them, and choose how much precision and memory to spend.
+Below we illustrate both the implementation details and provide a small tutorial to show how to construct the TLR matrices, multiply them, and choose how much precision and memory to spend.
 
 ## Two TLR variants
 
