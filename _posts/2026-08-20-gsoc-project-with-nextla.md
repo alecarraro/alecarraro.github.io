@@ -1,15 +1,14 @@
 ---
 layout: post
 title: Tile-Low-Rank Matrices in NextLA.jl
-image: /assets/images/gsoc-2026/tlr_matrix.png
+image: /assets/images/gsoc-2026/tlr_matrix-transparent.png
 ---
 
 <div class="message">
   This post summarizes my GSoC 2026 work on
   <a href="https://github.com/NextLinearAlgebra/NextLA.jl">NextLA.jl</a>,
-  carried out under the guidance of <a href="https://github.com/rabab53">Rabab Alomairy</a> and Qinglei Cao. The goal was to add a
-  usable Tile-Low-Rank format and make matrix multiplication on compressed
-  matrices fast on GPUs.
+  carried out under the guidance of <a href="https://github.com/rabab53">Rabab Alomairy</a> and <a href="https://github.com/QingleiCao">Qinglei Cao</a>. The goal was to add
+  support for the Tile-Low-Rank matrix format and add operations such as a GPU accelerated TLR matrix multiplication.
 </div>
 
 ## Table of Contents
@@ -66,7 +65,7 @@ that is far easier to schedule on a GPU, which is fundamental for performance
 in real applications.
 
 <figure>
-  <img src="{{ '/assets/images/gsoc-2026/tlr_matrix.png' | relative_url }}"
+  <img src="{{ '/assets/images/gsoc-2026/tlr_matrix-transparent.png' | relative_url }}"
        alt="A Tile-Low-Rank matrix whose tiles have different ranks"
        width="900">
   <figcaption>Each tile has its own low-rank factorization and rank.</figcaption>
@@ -120,10 +119,9 @@ C_{\mathrm{tlr}}
 \operatorname{gemm}(A_{\mathrm{tlr}}, B_{\mathrm{tlr}}),
 $$
 
-so the product does not have to be materialized as a dense matrix. The API also exposes the controls needed for real workloads: transpose combinations, mixed-precision compute modes, workspace limits, and workspace
-reuse.
+so the product does not have to be materialized as a dense matrix. The API also exposes the controls needed for real workloads: transpose combinations, mixed-precision compute modes, workspace limits, and workspace reuse.
 
-Below we illustrate both the implementation details and provide a small tutorial to show how to construct the TLR matrices, multiply them, and choose how much precision and memory to spend.
+Below we illustrate some implementation details and provide a small tutorial to show how to construct the TLR matrices, multiply them, and choose how much precision and memory to spend.
 
 ## Two TLR variants
 
@@ -149,7 +147,7 @@ storage works for every `N`/`T` operand combination without keeping another
 copy.
 
 <figure>
-  <img src="{{ '/assets/images/gsoc-2026/data_structure.jpg' | relative_url }}"
+  <img src="{{ '/assets/images/gsoc-2026/data_structure-transparent.png' | relative_url }}"
        alt="Complementary packed storage for U and V factors"
        width="900">
   <figcaption>
@@ -157,14 +155,14 @@ copy.
   </figcaption>
 </figure>
 
-Low-precision grouped GEMMs add one practical constraint: factor addresses and
-dimensions must satisfy the backend alignment requirements. The
-`rank_multiple` option rounds only the stored capacity of a factor. The
-logical rank, error estimate, and numerical result do not change. For FP16 and
-BF16 on current CUDA hardware, a multiple of eight is the useful setting.
+Some low-precision kernels, including grouped GEMM, require aligned factor
+addresses and dimensions. The `rank_multiple` option meets this requirement by
+padding each factor's stored capacity without changing its logical rank, error
+estimate, or numerical result. On current CUDA hardware, use
+`rank_multiple=8` for FP16 and BF16 factors.
 
 <figure>
-  <img src="{{ '/assets/images/gsoc-2026/paddinh.png' | relative_url }}"
+  <img src="{{ '/assets/images/gsoc-2026/paddinh-transparent.png' | relative_url }}"
        alt="A logical low-rank factor padded to an aligned stored capacity"
        width="850">
   <figcaption>
@@ -241,12 +239,32 @@ and the product is lowered in three stages:
 3. fold the sum over $$\ell$$ into the reduction dimension of a final GEMM.
 
 <figure>
-  <img src="{{ '/assets/images/gsoc-2026/tlr_stages_wide.png' | relative_url }}"
-       alt="The three stages of the dense-output Tile-Low-Rank GEMM"
-       width="1200">
+  <img src="{{ '/assets/images/gsoc-2026/tlr_stage1-transparent.png' | relative_url }}"
+       alt="Stage 1 forms the coupling matrices and fuses the output-column axis"
+       width="700">
   <figcaption>
-    One FoldRight run: two grouped stages build the intermediates, followed by
-    one fused GEMM for an output row.
+    Stage 1 forms the coupling matrices. Output columns are fused into each
+    GEMM, while the contraction tiles are submitted as a batch.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="{{ '/assets/images/gsoc-2026/tlr_stage2-transparent.png' | relative_url }}"
+       alt="Stage 2 multiplies the coupling matrices by the inner factors of B"
+       width="800">
+  <figcaption>
+    Stage 2 builds the intermediate factors with grouped GEMMs over the
+    contraction and output-column indices.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="{{ '/assets/images/gsoc-2026/tlr_stage3-transparent.png' | relative_url }}"
+       alt="Stage 3 folds the contraction axis into one GEMM for an output row"
+       width="750">
+  <figcaption>
+    Stage 3 folds the complete sum over ℓ into the GEMM reduction
+    dimension, producing an output row with one final GEMM.
   </figcaption>
 </figure>
 
@@ -355,9 +373,10 @@ the same mixed-precision compute modes as the dense-output implementation.
 ## Results
 
 We evaluated the dense-output GEMM on an NVIDIA H100 with both uniform and
-skewed tile-rank distributions. The implementation supports FP16, BF16, TF32,
-FP32, and FP64; the plots below will collect the measured configurations from
-the poster and project summary.
+skewed tile-rank distributions. A direct comparison with KBLAS is necessarily
+limited: KBLAS supports FP32 and FP64 and uses one common rank for every tile
+in an operand. NextLA additionally supports BF16, FP16, and TF32 on CUDA, and
+executes each tile at its own rank.
 
 For constant-rank FP32 problems, NextLA reached 92.1% of the ceiling obtained
 by scaling dense-GEMM time by the executed-FLOP ratio. On the configurations
@@ -366,14 +385,38 @@ times faster. The advantage is larger for variable ranks because NextLA does
 not pad every tile to one operand-wide rank.
 
 <figure>
-  <img src="{{ '/assets/images/gsoc-2026/figure_4_constant_rank_nextla_vs_kblas_b_n16_r_b16.png' | relative_url }}"
+  <img src="{{ '/assets/images/gsoc-2026/figure_4_constant_rank_nextla_vs_kblas_b_n16_r_b16-transparent.png' | relative_url }}"
        alt="NextLA and KBLAS constant-rank FP32 TLR GEMM runtime on an NVIDIA H100"
-       width="850">
+       width="650">
   <figcaption>
     Constant-rank FP32 GEMM with tile size $$b=N/16$$ and tile rank $$r=b/16$$.
     The arithmetic ceiling scales dense-GEMM time by the executed-FLOP ratio.
   </figcaption>
 </figure>
+
+The constant-rank experiment above provides the like-for-like KBLAS
+comparison. The next experiment uses the feature that the padded baseline
+cannot represent directly: different ranks for different tiles. Each matrix
+has eight tiles per axis, hence 64 tiles in total, with tile size $$b=N/8$$
+and ranks varying between $$b/16$$ and $$b/8$$. The bars report speedup over
+the corresponding dense GEMM for several matrix sizes and compute modes.
+
+<figure>
+  <img src="{{ '/assets/images/gsoc-2026/figure_5_precision_speedup_bars_skewed_b_n8-transparent.png' | relative_url }}"
+       alt="TLR GEMM speedups across BF16, FP16, TF32, and FP32 for matrices with skewed tile ranks"
+       width="850">
+  <figcaption>
+    Speedup over dense GEMM for matrices with an $$8\times8$$ tile grid,
+    $$b=N/8$$, and per-tile ranks in $$[b/16,b/8]$$. NextLA uses the exact
+    rank of each tile. KBLAS pads the varying ranks to one common rank and is
+    shown only for its supported FP32 comparison.
+  </figcaption>
+</figure>
+
+The missing KBLAS bars in the BF16, FP16, and TF32 panels are therefore not
+omitted measurements; those execution modes are not supported by KBLAS. The
+NextLA speedup increases with matrix size as the fused compressed operations
+become large enough to use the GPU efficiently.
 
 The workspace experiments show the other side of the design. One FP16
 configuration was 6.34 times faster than dense GEMM while using 17.8% of the
