@@ -5,10 +5,12 @@ image: /assets/images/gsoc-2026/tlr_matrix-transparent.png
 ---
 
 <div class="message">
-  This post summarizes my GSoC 2026 work on
+  This post summarizes my Google Summer of Code 2026 work on
   <a href="https://github.com/NextLinearAlgebra/NextLA.jl">NextLA.jl</a>,
-  carried out under the guidance of <a href="https://github.com/rabab53">Rabab Alomairy</a> and <a href="https://github.com/QingleiCao">Qinglei Cao</a>. The goal was to add
-  support for the Tile-Low-Rank matrix format and add operations such as a GPU accelerated TLR matrix multiplication.
+  mentored by <a href="https://github.com/rabab53">Rabab Alomairy</a> and
+  <a href="https://github.com/QingleiCao">Qinglei Cao</a>. The project introduced
+  the Tile-Low-Rank (TLR) matrix format and GPU-accelerated operations, including
+  matrix multiplication with both dense and compressed output.
 </div>
 
 ## Table of Contents
