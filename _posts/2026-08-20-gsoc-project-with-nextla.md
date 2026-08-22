@@ -406,8 +406,8 @@ the corresponding dense GEMM for several matrix sizes and compute modes.
        alt="TLR GEMM speedups across BF16, FP16, TF32, and FP32 for matrices with skewed tile ranks"
        width="850">
   <figcaption>
-    Speedup over dense GEMM for matrices with an $$8\times8$$ tile grid,
-    $$b=N/8$$, and per-tile ranks in $$[b/16,b/8]$$. NextLA uses the exact
+    Speedup over dense GEMM for matrices with an \(8\times8\) tile grid,
+    \(b=N/8\), and per-tile ranks in \([b/16,b/8]\). NextLA uses the exact
     rank of each tile. KBLAS pads the varying ranks to one common rank and is
     shown only for its supported FP32 comparison.
   </figcaption>
@@ -428,56 +428,41 @@ operand memory.
 
 ## Using the implementation
 
-The following example compresses two matrices, chooses the largest dense-output
-workspace, multiplies them, and reconstructs one operand for inspection:
+Assume `A` and `B` are dense `Matrix{Float32}` inputs. The same compressed
+operands can then be used with both GEMM output modes:
 
 ```julia
 using NextLA
 
-b = 256
+# A and B are dense matrices with compatible dimensions. For compressed-output
+# GEMM, each dimension must also be a multiple of the tile size.
+b, maxrank = 256, 64
 
-A_tlr = TLRMatrix(A, b;
-                  maxrank=64,
-                  tol=1f-5,
-                  rel=true)
-B_tlr = TLRMatrix(B, b;
-                  maxrank=64,
-                  tol=1f-5,
-                  rel=true)
+A_tlr = CompressedFTLRMatrix(A, b; maxrank, tol=1f-5, rel=true)
+B_tlr = CompressedFTLRMatrix(B, b; maxrank, tol=1f-5, rel=true)
 
-workspace = gemm_maximum_workspace_bytes(A_tlr, B_tlr)
-C = similar(A, size(A, 1), size(B, 2))
-
-gemm!(C, A_tlr, B_tlr;
-      workspace,
+# Dense accumulation: C_dense is an ordinary dense matrix.
+C_dense = zeros(Float32, size(A, 1), size(B, 2))
+dense_workspace = gemm_maximum_workspace_bytes(A_tlr, B_tlr)
+gemm!(C_dense, A_tlr, B_tlr;
+      workspace=dense_workspace,
       alpha=1,
-      beta=0,
-      transA='N',
-      transB='N')
+      beta=0)
 
-A_reconstructed = similar(A)
-uncompress!(A_reconstructed, A_tlr)
+# Compressed accumulation: ranks are discovered before C_tlr is packed.
+C_tlr = gemm(A_tlr, B_tlr;
+             maxrank,
+             tol=1f-5,
+             rel=true,
+             r_required=10)
+
+# Expand a compressed matrix whenever a conventional dense array is needed.
+C_uncompressed = similar(C_dense)
+uncompress!(C_uncompressed, C_tlr)
 ```
 
-When every output tile should remain compressed, use the fully compressed
-format and the allocation-returning GEMM:
-
-```julia
-A_ftlr = CompressedFTLRMatrix(A, b;
-                              maxrank=64,
-                              tol=1f-5,
-                              rel=true)
-B_ftlr = CompressedFTLRMatrix(B, b;
-                              maxrank=64,
-                              tol=1f-5,
-                              rel=true)
-
-C_ftlr = gemm(A_ftlr, B_ftlr;
-              maxrank=64,
-              tol=1f-5,
-              rel=true,
-              r_required=10)
-```
+`C_dense` stores the product directly in dense form. `C_tlr` keeps each output
+tile compressed, while `C_uncompressed` is its dense reconstruction.
 
 On CUDA, FP16 and BF16 storage can use `rank_multiple=8`; FP32 can select
 Tensor Core execution with `compute=TF32()`.
