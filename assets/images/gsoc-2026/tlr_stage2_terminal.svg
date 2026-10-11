@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="diagram-title diagram-description">
+  <title id="diagram-title">Stage 2 · Write the terminal workspace</title>
+  <desc id="diagram-description">A 64 by 64 coupling block multiplies a 64 by 256 transposed inner factor. Its 64 by 256 result is written into the k=2, j=1 block of the 192 by 768 terminal matrix T1.</desc>
+  <rect x="1" y="1" width="1198" height="648" rx="18" fill="#ffffff" stroke="#dce4ed" stroke-width="2" />
+  <text x="48" y="55" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="start">Stage 2 · Write the terminal workspace</text>
+  <text x="48" y="98" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="start">One task: i=1, k=2, j=1. All 18 tasks write directly into T₁ or T₂.</text>
+  <text x="600" y="145" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="27" font-weight="normal" text-anchor="middle">Tᵢₖⱼ = Sᵢₖⱼ Zₖⱼᵀ</text>
+  <text x="100.0" y="263" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Coupling</text>
+  <text x="100.0" y="295" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">64 × 64</text>
+  <rect x="50" y="312" width="100" height="100" rx="0" fill="#dcfce7" stroke="#4ade80" stroke-width="2.5" />
+  <text x="100.0" y="370.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₁₂₁</text>
+  <text x="195" y="370" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="36" font-weight="normal" text-anchor="middle">×</text>
+  <text x="350.0" y="263" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Inner factor</text>
+  <text x="350.0" y="295" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">64 × 256</text>
+  <rect x="235" y="312" width="230" height="100" rx="0" fill="#ede9fe" stroke="#a78bfa" stroke-width="2.5" />
+  <text x="350.0" y="370.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">Z₂₁ᵀ</text>
+  <text x="511" y="370" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="36" font-weight="normal" text-anchor="middle">=</text>
+  <text x="670.0" y="263" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Task result</text>
+  <text x="670.0" y="295" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">64 × 256</text>
+  <rect x="555" y="312" width="230" height="100" rx="0" fill="#ccfbf1" stroke="#2dd4bf" stroke-width="2.5" />
+  <text x="670.0" y="370.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₁</text>
+  <line x1="800" y1="362" x2="875" y2="362" stroke="#0f766e" stroke-width="3" />
+  <polygon points="875,362 863,355 863,369" fill="#0f766e" />
+  <text x="837" y="299" fill="#0f766e" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">write</text>
+  <text x="1015.0" y="223" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Workspace T₁</text>
+  <text x="1015.0" y="255" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">192 × 768</text>
+  <rect x="880" y="272" width="270" height="180" rx="0" fill="#ccfbf1" stroke="#2dd4bf" stroke-width="2.5" />
+  <line x1="880" y1="332.0" x2="1150" y2="332.0" stroke="#2dd4bf" stroke-width="2" />
+  <line x1="880" y1="392.0" x2="1150" y2="392.0" stroke="#2dd4bf" stroke-width="2" />
+  <line x1="970.0" y1="272" x2="970.0" y2="452" stroke="#2dd4bf" stroke-width="2" />
+  <line x1="1060.0" y1="272" x2="1060.0" y2="452" stroke="#2dd4bf" stroke-width="2" />
+  <rect x="882.0" y="334.0" width="86.0" height="56.0" rx="0" fill="#fef3c7" stroke="#b45309" stroke-width="3" />
+  <text x="925.0" y="310.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₁₁</text>
+  <text x="1015.0" y="310.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₁₂</text>
+  <text x="1105.0" y="310.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₁₃</text>
+  <text x="925.0" y="370.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₁</text>
+  <text x="1015.0" y="370.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₂</text>
+  <text x="1105.0" y="370.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₃</text>
+  <text x="925.0" y="430.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₃₁</text>
+  <text x="1015.0" y="430.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₃₂</text>
+  <text x="1105.0" y="430.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₃₃</text>
+  <text x="925.0" y="479" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">j=1</text>
+  <text x="1015.0" y="479" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">j=2</text>
+  <text x="1105.0" y="479" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">j=3</text>
+  <text x="1015" y="510" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">rows: (a, k) · columns: (n, j)</text>
+  <rect x="48.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="226.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" text-anchor="middle">18 independent GEMMs</text>
+  <text x="226.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">tasks indexed by (i, k, j)</text>
+  <rect x="422.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="600.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" text-anchor="middle">(M, N, K) = (64, 256, 64)</text>
+  <text x="600.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">reduce the B-rank coordinate b</text>
+  <rect x="796.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="974.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" text-anchor="middle">No intermediate gather</text>
+  <text x="974.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">each task writes its final location</text>
+  <text x="48" y="640" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="normal" text-anchor="start">Schematic blocks; numerical matrix dimensions are shown above each panel.</text>
+</svg>

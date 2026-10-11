@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="diagram-title diagram-description">
+  <title id="diagram-title">Stage 3 · Fold the tile sum into GEMM</title>
+  <desc id="diagram-description">The outer factors U11, U12, U13 form a 256 by 192 panel. The terminal workspace T1 is 192 by 768. One GEMM writes the three dense output tiles C11, C12, C13 and applies beta once.</desc>
+  <rect x="1" y="1" width="1198" height="648" rx="18" fill="#ffffff" stroke="#dce4ed" stroke-width="2" />
+  <text x="48" y="55" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="start">Stage 3 · Fold the tile sum into GEMM</text>
+  <text x="48" y="98" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="start">Fix i=1. Consume all three contraction tiles in one dense-output update.</text>
+  <text x="600" y="145" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="27" font-weight="normal" text-anchor="middle">C₁,J ← α U₁ T₁ + β C₁,J</text>
+  <text x="195.0" y="195" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Outer panel U₁</text>
+  <text x="195.0" y="227" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">256 × 192</text>
+  <rect x="60" y="244" width="270" height="240" rx="0" fill="#dbeafe" stroke="#60a5fa" stroke-width="2.5" />
+  <line x1="150.0" y1="244" x2="150.0" y2="484" stroke="#60a5fa" stroke-width="2" />
+  <line x1="240.0" y1="244" x2="240.0" y2="484" stroke="#60a5fa" stroke-width="2" />
+  <text x="105.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">U₁₁</text>
+  <text x="195.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">U₁₂</text>
+  <text x="285.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">U₁₃</text>
+  <text x="375" y="373" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="38" font-weight="normal" text-anchor="middle">×</text>
+  <text x="585.0" y="195" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Terminal matrix T₁</text>
+  <text x="585.0" y="227" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">192 × 768</text>
+  <rect x="420" y="244" width="330" height="240" rx="0" fill="#ccfbf1" stroke="#2dd4bf" stroke-width="2.5" />
+  <line x1="420" y1="324.0" x2="750" y2="324.0" stroke="#2dd4bf" stroke-width="2" />
+  <line x1="420" y1="404.0" x2="750" y2="404.0" stroke="#2dd4bf" stroke-width="2" />
+  <line x1="530.0" y1="244" x2="530.0" y2="484" stroke="#2dd4bf" stroke-width="2" />
+  <line x1="640.0" y1="244" x2="640.0" y2="484" stroke="#2dd4bf" stroke-width="2" />
+  <text x="475.0" y="292.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₁₁</text>
+  <text x="585.0" y="292.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₁₂</text>
+  <text x="695.0" y="292.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₁₃</text>
+  <text x="475.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₁</text>
+  <text x="585.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₂</text>
+  <text x="695.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₂₃</text>
+  <text x="475.0" y="452.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₃₁</text>
+  <text x="585.0" y="452.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₃₂</text>
+  <text x="695.0" y="452.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">T₁₃₃</text>
+  <text x="475.0" y="511" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">j=1</text>
+  <text x="585.0" y="511" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">j=2</text>
+  <text x="695.0" y="511" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">j=3</text>
+  <text x="810" y="373" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="38" font-weight="normal" text-anchor="middle">→</text>
+  <text x="1005.0" y="195" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Dense output C₁,J</text>
+  <text x="1005.0" y="227" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">256 × 768</text>
+  <rect x="870" y="244" width="270" height="240" rx="0" fill="#fef3c7" stroke="#fbbf24" stroke-width="2.5" />
+  <line x1="960.0" y1="244" x2="960.0" y2="484" stroke="#fbbf24" stroke-width="2" />
+  <line x1="1050.0" y1="244" x2="1050.0" y2="484" stroke="#fbbf24" stroke-width="2" />
+  <text x="915.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">C₁₁</text>
+  <text x="1005.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">C₁₂</text>
+  <text x="1095.0" y="372.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">C₁₃</text>
+  <text x="585" y="533" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="normal" text-anchor="middle">Match each U column segment to the corresponding k row segment of T.</text>
+  <rect x="48.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="226.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" text-anchor="middle">Reduction K = 3 × 64 = 192</text>
+  <text x="226.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">the paired coordinate (a, k)</text>
+  <rect x="422.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="600.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" text-anchor="middle">(M, N, K) = (256, 768, 192)</text>
+  <text x="600.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" text-anchor="middle">three output columns in one panel</text>
+  <rect x="796.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="974.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" text-anchor="middle">2 final GEMMs</text>
+  <text x="974.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">one per output tile row i</text>
+  <text x="48" y="640" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="normal" text-anchor="start">Schematic blocks; numerical matrix dimensions are shown above each panel.</text>
+</svg>

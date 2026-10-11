@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="diagram-title diagram-description">
+  <title id="diagram-title">Stage 1 · Fuse the coupling panels</title>
+  <desc id="diagram-description">A 128 by 256 left panel multiplies a 256 by 192 right panel, forming six 64 by 64 coupling blocks in one GEMM. Repeat independently for three k values.</desc>
+  <rect x="1" y="1" width="1198" height="648" rx="18" fill="#ffffff" stroke="#dce4ed" stroke-width="2" />
+  <text x="48" y="55" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="start">Stage 1 · Fuse the coupling panels</text>
+  <text x="48" y="98" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="start">Fix k. Combine two output tile rows and three output tile columns.</text>
+  <text x="600" y="145" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="27" font-weight="normal" text-anchor="middle">Sₖ = [V₁ₖᵀ; V₂ₖᵀ] [Wₖ₁  Wₖ₂  Wₖ₃]</text>
+  <text x="210.0" y="253" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Left coupling panel</text>
+  <text x="210.0" y="285" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">128 × 256</text>
+  <rect x="60" y="302" width="300" height="150" rx="0" fill="#dbeafe" stroke="#60a5fa" stroke-width="2.5" />
+  <line x1="60" y1="377.0" x2="360" y2="377.0" stroke="#60a5fa" stroke-width="2" />
+  <text x="210.0" y="347.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">V₁ₖᵀ</text>
+  <text x="210.0" y="422.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">V₂ₖᵀ</text>
+  <text x="401" y="386" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="38" font-weight="normal" text-anchor="middle">×</text>
+  <text x="562.5" y="178" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Right coupling panel</text>
+  <text x="562.5" y="210" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">256 × 192</text>
+  <rect x="450" y="227" width="225" height="300" rx="0" fill="#ffedd5" stroke="#fb923c" stroke-width="2.5" />
+  <line x1="525.0" y1="227" x2="525.0" y2="527" stroke="#fb923c" stroke-width="2" />
+  <line x1="600.0" y1="227" x2="600.0" y2="527" stroke="#fb923c" stroke-width="2" />
+  <text x="487.5" y="385.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">Wₖ₁</text>
+  <text x="562.5" y="385.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">Wₖ₂</text>
+  <text x="637.5" y="385.0" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">Wₖ₃</text>
+  <text x="718" y="386" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="38" font-weight="normal" text-anchor="middle">=</text>
+  <text x="877.5" y="253" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">Coupling block Sₖ</text>
+  <text x="877.5" y="285" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">128 × 192</text>
+  <rect x="765" y="302" width="225" height="150" rx="0" fill="#dcfce7" stroke="#4ade80" stroke-width="2.5" />
+  <line x1="765" y1="377.0" x2="990" y2="377.0" stroke="#4ade80" stroke-width="2" />
+  <line x1="840.0" y1="302" x2="840.0" y2="452" stroke="#4ade80" stroke-width="2" />
+  <line x1="915.0" y1="302" x2="915.0" y2="452" stroke="#4ade80" stroke-width="2" />
+  <text x="802.5" y="347.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₁ₖ₁</text>
+  <text x="877.5" y="347.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₁ₖ₂</text>
+  <text x="952.5" y="347.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₁ₖ₃</text>
+  <text x="802.5" y="422.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₂ₖ₁</text>
+  <text x="877.5" y="422.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₂ₖ₂</text>
+  <text x="952.5" y="422.5" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="normal" text-anchor="middle">S₂ₖ₃</text>
+  <rect x="48.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="226.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" text-anchor="middle">6 small products → 1 GEMM</text>
+  <text x="226.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">for each contraction tile k</text>
+  <rect x="422.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="600.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" text-anchor="middle">(M, N, K) = (128, 192, 256)</text>
+  <text x="600.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">free modes: (a, i) and (b, j)</text>
+  <rect x="796.0" y="552" width="356.0" height="66" rx="10" fill="#f4f7fb" stroke="#dce4ed" stroke-width="0" />
+  <text x="974.0" y="579" fill="#172b42" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" text-anchor="middle">3 independent GEMMs</text>
+  <text x="974.0" y="605" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="normal" text-anchor="middle">one grouped task per k</text>
+  <text x="48" y="640" fill="#42556b" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="normal" text-anchor="start">Schematic blocks; numerical matrix dimensions are shown above each panel.</text>
+</svg>
