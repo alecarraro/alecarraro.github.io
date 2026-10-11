@@ -1,31 +1,35 @@
 <!DOCTYPE html>
-<html lang="en-us">
-
+<html lang="en">
   {% include head.html %}
-
   <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-brand" href="{{ '/' | relative_url }}">Alessandro Carraro<span>.</span></a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="{{ '/' | relative_url }}#about">About</a>
+          <a href="{{ '/' | relative_url }}#experience">Experience</a>
+          <a href="{{ '/' | relative_url }}#projects">Projects</a>
+          <a href="{{ '/writing/' | relative_url }}">Notes</a>
+          <a class="nav-cv" href="{{ '/assets/cv/alessandro-carraro-cv.pdf' | relative_url }}">CV <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </header>
 
-    {% include sidebar.html %}
+    <main id="main-content" class="container content">
+      {{ content }}
+    </main>
 
-    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
-         content to avoid any CSS collisions with our real content. -->
-    <div class="wrap">
-      <div class="masthead">
-        <div class="container">
-          <h3 class="masthead-title">
-            <a href="{{ site.baseurl }}/" title="Home">{{ site.title }}</a>
-            <small>{{ site.tagline }}</small>
-          </h3>
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <span>Alessandro Carraro · Edinburgh, UK</span>
+        <div>
+          <a href="mailto:alecarraro33@gmail.com">Email</a>
+          <a href="https://github.com/alecarraro">GitHub</a>
+          <a href="https://www.linkedin.com/in/alessandro-carraro-162761387/">LinkedIn</a>
         </div>
       </div>
-
-      <div class="container content">
-        {{ content }}
-      </div>
-    </div>
-
-    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
-
-    <script src='{{ site.baseurl }}/public/js/script.js'></script>
+      <p class="footer-note">Built with Jekyll · {{ site.time | date: '%Y' }}</p>
+    </footer>
   </body>
 </html>

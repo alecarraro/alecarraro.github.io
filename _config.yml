@@ -1,7 +1,7 @@
 # Setup
 title:               Alessandro Carraro
-#tagline:             'A blog about my thoughts and experiences.'
-description:         'Welcome to my blog. Here I will share details about my projects'
+tagline:             'Computational Mathematics · Scientific Computing'
+description:         'PhD researcher in computational mathematics at the University of Edinburgh.'
 url:                 'https://alecarraro.github.io'
 baseurl:             ''
 paginate:            5

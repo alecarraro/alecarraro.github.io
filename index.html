@@ -1,34 +1,140 @@
 ---
 layout: default
-title: Blog
+title: Home
 ---
 
-<section class="blog">
-  <h1>Notes</h1>
-
-  {% assign visible_posts = site.posts | where_exp:"post", "post.hidden != true" %}
-  {% assign posts_by_year = visible_posts | group_by_exp:"post", "post.date | date: '%Y'" %}
-  {% for year in posts_by_year %}
-    <h2>{{ year.name }}</h2>
-
-    <div class="post-list">
-      {% for post in year.items %}
-      <article class="post-preview">
-        <div class="post-preview-body">
-          <h3>
-            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-          </h3>
-          <p class="post-preview-date">
-            Published on {{ post.date | date: "%b %d, %Y" }}.
-          </p>
-        </div>
-        {% if post.image %}
-          <div class="post-preview-image">
-            <img src="{{ post.image | relative_url }}" alt="Post image">
-          </div>
-        {% endif %}
-      </article>
-      {% endfor %}
+<div class="profile-page">
+  <section class="hero" id="about" aria-labelledby="intro-title">
+    <div class="hero-copy">
+      <p class="eyebrow">Computational mathematics · Edinburgh, UK</p>
+      <h1 id="intro-title">Alessandro Carraro</h1>
+      <p class="hero-role">PhD student in computational mathematics</p>
+      <p class="hero-summary">
+        I research structure-preserving numerical linear algebra methods to make deep learning models more compact, efficient, and scalable.
+      </p>
+      <div class="hero-links" aria-label="Profile links">
+        <a class="button button-primary" href="{{ '/assets/cv/alessandro-carraro-cv.pdf' | relative_url }}">Download CV <span aria-hidden="true">↓</span></a>
+        <a class="text-link" href="https://github.com/alecarraro">GitHub <span aria-hidden="true">↗</span></a>
+        <a class="text-link" href="https://www.linkedin.com/in/alessandro-carraro-162761387/">LinkedIn <span aria-hidden="true">↗</span></a>
+      </div>
     </div>
-  {% endfor %}
-</section>
+    <div class="hero-aside">
+      <img class="profile-photo" src="{{ '/assets/images/profile/profile.png' | relative_url }}" alt="Portrait of Alessandro Carraro">
+      <p class="hero-affiliation">University of Edinburgh<br><span>September 2026 – present</span></p>
+    </div>
+  </section>
+
+  <section class="content-section research-section" id="research" aria-labelledby="research-title">
+    <div class="section-heading">
+      <p class="eyebrow">What I work on</p>
+      <h2 id="research-title">Research</h2>
+    </div>
+    <div class="section-copy">
+      <p>
+        I am a PhD student at the University of Edinburgh, where I study AI model
+        compression through structured linear algebra. I completed the joint
+        Computational Science and Engineering master’s programme at KTH and TU Delft,
+        graduating <em>cum laude</em>.
+      </p>
+      <p>
+        My research explores questions such as: Can we exploit tensor decompositions
+        or structured operators to reduce the memory footprint of neural networks?
+        What are the trade-offs between memory usage, computational cost, and model
+        accuracy? And how can we translate these mathematical ideas into efficient
+        GPU implementations?
+      </p>
+      <div class="topic-list" aria-label="Research topics">
+        <span>Structured linear algebra</span>
+        <span>Machine learning</span>
+        <span>GPU computing</span>
+        <span>Scientific software</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section" id="experience" aria-labelledby="experience-title">
+    <div class="section-heading">
+      <p class="eyebrow">Education & experience</p>
+    </div>
+    <div class="timeline">
+      <article class="timeline-item">
+        <p class="timeline-date">Sep 2026 – present</p>
+        <div>
+          <h3>PhD in Computational Mathematics</h3>
+          <p class="timeline-place">University of Edinburgh</p>
+        </div>
+      </article>
+      <article class="timeline-item">
+        <p class="timeline-date">Sep 2024 – Aug 2026</p>
+        <div>
+          <h3>MSc in Computer Simulations for Science and Engineering</h3>
+          <p class="timeline-place">KTH Royal Institute of Technology & Delft University of Technology</p>
+          <p>Joint degree, <em>cum laude</em>. Thesis: <a href="https://kth.diva-portal.org/smash/get/diva2:2103062/FULLTEXT01.pdf">A Multi-Precision Block-Jacobi SVD for Modern GPUs</a>.</p>
+        </div>
+      </article>
+      <article class="timeline-item">
+        <p class="timeline-date">May – Aug 2026</p>
+        <div>
+          <h3>Google Summer of Code contributor</h3>
+          <p class="timeline-place">NextLA.jl</p>
+          <p>Designed and implemented GPU-accelerated Tile-Low-Rank matrix multiplication, achieving up to 2.8× speedup over the existing implementation.</p>
+        </div>
+      </article>
+      <article class="timeline-item">
+        <p class="timeline-date">May – Aug 2025</p>
+        <div>
+          <h3>Google Summer of Code contributor</h3>
+          <p class="timeline-place">JuliaReach</p>
+          <p>Implemented reachability algorithms for the analysis of uncertain dynamical systems in Julia.</p>
+        </div>
+      </article>
+      <article class="timeline-item">
+        <p class="timeline-date">Sep 2024 – Mar 2025</p>
+        <div>
+          <h3>Graduate Teaching Assistant</h3>
+          <p class="timeline-place">Delft University of Technology</p>
+          <p>Supported master’s and bachelor’s courses in high-performance computing, including MPI, OpenMP, and CUDA.</p>
+        </div>
+      </article>
+      <article class="timeline-item">
+        <p class="timeline-date">Sep 2021 – Jun 2024</p>
+        <div>
+          <h3>BSc in Aerospace Engineering</h3>
+          <p class="timeline-place">Delft University of Technology</p>
+          <p>Minor in Computational Science and Engineering.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="content-section projects-section" id="projects" aria-labelledby="projects-title">
+    <div class="section-heading">
+      <p class="eyebrow">Selected work</p>
+      <h2 id="projects-title">Projects & Publications</h2>
+    </div>
+    <div class="project-grid">
+      <article class="project-card" id="project-svd">
+        <p class="project-meta">Numerical linear algebra · CUDA C++</p>
+        <h3>Multi-precision Block-Jacobi SVD</h3>
+        <p>Developed a mixed-precision SVD algorithm for modern GPUs. It achieved up to 5× speedup over a full-FP64 implementation while retaining comparable accuracy on ill-conditioned problems.</p>
+        <p class="project-footnote">MSc thesis · Jan – Jun 2026</p>
+        <a class="card-link" href="https://kth.diva-portal.org/smash/get/diva2:2103062/FULLTEXT01.pdf">Read the thesis <span aria-hidden="true">↗</span></a>
+      </article>
+      <article class="project-card">
+        <p class="project-meta">GPU computing · Julia</p>
+        <h3>Tile-Low-Rank GEMM in NextLA.jl</h3>
+        <p>Built GPU-enabled Tile-Low-Rank matrix multiplication routines and extended the open-source library’s structured linear algebra tools.</p>
+        <a class="card-link" href="{{ '/2026/08/20/gsoc-project-with-nextla/' | relative_url }}">Read the project write-up <span aria-hidden="true">↗</span></a>
+      </article>
+      <article class="project-card">
+        <p class="project-meta">Workshop paper · ARCH-COMP 2026</p>
+        <h3>ARCH-COMP26 Category Report: Continuous and Hybrid Systems with Linear Continuous Dynamics</h3>
+        <p>Co-authored the ARCH-COMP26 category report on continuous and hybrid systems with linear continuous dynamics, published in EPiC Series in Computing.</p>
+        <p class="project-footnote">EPiC Series in Computing, Vol. 110 · 2026</p>
+        <a class="card-link" href="https://easychair.org/publications/paper/hFjB/open">Read the workshop paper <span aria-hidden="true">↗</span></a>
+      </article>
+    </div>
+  </section>
+
+  <p class="notes-note">Occasional technical notes and project logs: <a href="{{ '/writing/' | relative_url }}">browse the archive <span aria-hidden="true">→</span></a></p>
+</div>
