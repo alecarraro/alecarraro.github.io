@@ -3,138 +3,127 @@ layout: default
 title: Home
 ---
 
-<div class="profile-page">
-  <section class="hero" id="about" aria-labelledby="intro-title">
-    <div class="hero-copy">
+<div class="home">
+  <header class="intro" id="about">
+    <img class="intro-photo" src="{{ '/assets/images/profile/profile.png' | relative_url }}" alt="Portrait of Alessandro Carraro">
+    <div class="intro-text">
       <p class="eyebrow">Computational mathematics · Edinburgh, UK</p>
-      <h1 id="intro-title">Alessandro Carraro</h1>
-      <p class="hero-role">PhD student in computational mathematics</p>
-      <p class="hero-summary">
-        I research structure-preserving numerical linear algebra methods to make deep learning models more compact, efficient, and scalable.
+      <h1 class="intro-name">Alessandro Carraro</h1>
+      <p class="intro-role">PhD student, University of Edinburgh</p>
+      <nav class="intro-links" aria-label="Profile links">
+        <a href="mailto:alecarraro33@gmail.com">email</a>
+        <a href="https://github.com/alecarraro">github</a>
+        <a href="https://www.linkedin.com/in/alessandro-carraro-162761387/">linkedin</a>
+        <a href="{{ '/assets/cv/alessandro-carraro-cv.pdf' | relative_url }}">cv.pdf</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="home-section" id="bio" aria-labelledby="bio-title">
+    <h2 class="home-heading" id="bio-title">Bio</h2>
+    <p>
+      I am a PhD student at the <strong>University of Edinburgh</strong>, where I study
+      AI model compression through structured linear algebra. Before that I completed
+      the joint Computational Science and Engineering master’s programme at
+      <strong>KTH</strong> and <strong>TU Delft</strong>, graduating <em>cum laude</em>.
+    </p>
+    <p>
+      My research explores questions such as: Can we exploit tensor decompositions
+      or structured operators to reduce the memory footprint of neural networks?
+      What are the trade-offs between memory usage, computational cost, and model
+      accuracy? And how can we translate these mathematical ideas into efficient
+      GPU implementations?
+    </p>
+    <div class="topic-list" aria-label="Research topics">
+      <span>structured linear algebra</span>
+      <span>machine learning</span>
+      <span>CUDA</span>
+      <span>scientific software</span>
+    </div>
+  </section>
+
+  <section class="home-section" id="projects" aria-labelledby="projects-title">
+    <h2 class="home-heading" id="projects-title">Projects &amp; publications</h2>
+
+    <article class="pub">
+      <h3 class="pub-title">A Mixed-Precision Block-Jacobi SVD for Modern GPUs</h3>
+      <p class="pub-desc">Mixed-precision SVD for modern GPUs: up to 5× faster than a full-FP64 implementation, with comparable accuracy on ill-conditioned problems.</p>
+      <p class="pub-venue">MSc thesis, KTH &amp; TU Delft, 2026 · CUDA C++</p>
+      <p class="pub-links">
+        <a href="https://kth.diva-portal.org/smash/get/diva2:2103062/FULLTEXT01.pdf">thesis</a>
       </p>
-      <div class="hero-links" aria-label="Profile links">
-        <a class="button button-primary" href="{{ '/assets/cv/alessandro-carraro-cv.pdf' | relative_url }}">Download CV <span aria-hidden="true">↓</span></a>
-        <a class="text-link" href="https://github.com/alecarraro">GitHub <span aria-hidden="true">↗</span></a>
-        <a class="text-link" href="https://www.linkedin.com/in/alessandro-carraro-162761387/">LinkedIn <span aria-hidden="true">↗</span></a>
-      </div>
-    </div>
-    <div class="hero-aside">
-      <img class="profile-photo" src="{{ '/assets/images/profile/profile.png' | relative_url }}" alt="Portrait of Alessandro Carraro">
-      <p class="hero-affiliation">University of Edinburgh<br><span>September 2026 – present</span></p>
-    </div>
-  </section>
+    </article>
 
-  <section class="content-section research-section" id="research" aria-labelledby="research-title">
-    <div class="section-heading">
-      <p class="eyebrow">What I work on</p>
-      <h2 id="research-title">Research</h2>
-    </div>
-    <div class="section-copy">
-      <p>
-        I am a PhD student at the University of Edinburgh, where I study AI model
-        compression through structured linear algebra. I completed the joint
-        Computational Science and Engineering master’s programme at KTH and TU Delft,
-        graduating <em>cum laude</em>.
+    <article class="pub">
+      <h3 class="pub-title">Tile-Low-Rank GEMM in NextLA.jl</h3>
+      <p class="pub-desc">GPU Tile-Low-Rank matrix multiplication for the NextLA.jl structured linear algebra library, up to 2.8× faster than the existing implementation.</p>
+      <p class="pub-venue">Google Summer of Code, 2026 · Julia, CUDA</p>
+      <p class="pub-links">
+        <a href="{{ '/2026/08/20/gsoc-project-with-nextla/' | relative_url }}">write-up</a>
+        <a href="https://github.com/NextLinearAlgebra/NextLA.jl/pull/20">code</a>
       </p>
-      <p>
-        My research explores questions such as: Can we exploit tensor decompositions
-        or structured operators to reduce the memory footprint of neural networks?
-        What are the trade-offs between memory usage, computational cost, and model
-        accuracy? And how can we translate these mathematical ideas into efficient
-        GPU implementations?
+    </article>
+
+    <article class="pub">
+      <h3 class="pub-title">ARCH-COMP26 Category Report: Continuous and Hybrid Systems with Linear Continuous Dynamics</h3>
+      <p class="pub-desc">Parametric reachability algorithms for uncertain dynamical systems in ReachabilityAnalysis.jl, developed during Google Summer of Code 2025 with JuliaReach.</p>
+      <p class="pub-venue">EPiC Series in Computing, Vol. 110, 2026 · workshop paper · Julia</p>
+      <p class="pub-links">
+        <a href="https://easychair.org/publications/paper/hFjB/open">paper</a>
+        <a href="{{ '/2025/08/21/gsoc-project-with-juliareach/' | relative_url }}">write-up</a>
       </p>
-      <div class="topic-list" aria-label="Research topics">
-        <span>Structured linear algebra</span>
-        <span>Machine learning</span>
-        <span>CUDA</span>
-        <span>Scientific software</span>
-      </div>
-    </div>
+    </article>
   </section>
 
-  <section class="content-section" id="experience" aria-labelledby="experience-title">
-    <div class="section-heading">
-      <p class="eyebrow">Education & experience</p>
-    </div>
-    <div class="timeline">
-      <article class="timeline-item">
-        <p class="timeline-date">Sep 2026 – present</p>
-        <div>
-          <h3>PhD in Computational Mathematics</h3>
-          <p class="timeline-place">University of Edinburgh</p>
-        </div>
-      </article>
-      <article class="timeline-item">
-        <p class="timeline-date">May – Aug 2026</p>
-        <div>
-          <h3>Google Summer of Code contributor</h3>
-          <p class="timeline-place">NextLA.jl</p>
-          <p>Designed and implemented GPU-accelerated Tile-Low-Rank matrix multiplication, achieving up to 2.8× speedup over the existing implementation.</p>
-        </div>
-      </article>
-      <article class="timeline-item">
-        <p class="timeline-date">Sep 2024 – June 2026</p>
-        <div>
-          <h3>MSc in Applied Mathematics</h3>
-          <p class="timeline-place">KTH Royal Institute of Technology & Delft University of Technology</p>
-          <p>Joint degree, <em>cum laude</em>. Thesis: <a href="https://kth.diva-portal.org/smash/get/diva2:2103062/FULLTEXT01.pdf">A Mixed-Precision Block-Jacobi SVD for Modern GPUs</a>.</p>
-        </div>
-      </article>
-      <article class="timeline-item">
-        <p class="timeline-date">May – Aug 2025</p>
-        <div>
-          <h3>Google Summer of Code contributor</h3>
-          <p class="timeline-place">JuliaReach</p>
-          <p>Implemented reachability algorithms for the analysis of uncertain dynamical systems in Julia.</p>
-        </div>
-      </article>
-      <article class="timeline-item">
-        <p class="timeline-date">Sep 2024 – Mar 2025</p>
-        <div>
-          <h3>Graduate Teaching Assistant</h3>
-          <p class="timeline-place">Delft University of Technology</p>
-          <p>Supported master’s and bachelor’s courses in high-performance computing, including MPI, OpenMP, and CUDA.</p>
-        </div>
-      </article>
-      <article class="timeline-item">
-        <p class="timeline-date">Sep 2021 – Jun 2024</p>
-        <div>
-          <h3>BSc in Aerospace Engineering</h3>
-          <p class="timeline-place">Delft University of Technology</p>
-          <p>Minor in Computational Science and Engineering.</p>
-        </div>
-      </article>
-    </div>
+  <section class="home-section" id="experience" aria-labelledby="vita-title">
+    <h2 class="home-heading" id="vita-title">Vita</h2>
+    <p class="vita-intro">Full details in the <a href="{{ '/assets/cv/alessandro-carraro-cv.pdf' | relative_url }}">CV</a>.</p>
+
+    <ol class="vita">
+      <li class="vita-item is-current">
+        <p class="vita-tag"><span class="vita-date">2026 – now</span><span class="vita-org">University of Edinburgh</span></p>
+        <p class="vita-role">PhD, Computational Mathematics</p>
+      </li>
+      <li class="vita-item">
+        <p class="vita-tag"><span class="vita-date">summer 2026</span><span class="vita-org">NextLA.jl</span></p>
+        <p class="vita-role">Google Summer of Code</p>
+        <p class="vita-detail">GPU Tile-Low-Rank GEMM</p>
+      </li>
+      <li class="vita-item">
+        <p class="vita-tag"><span class="vita-date">2024 – 2026</span><span class="vita-org">KTH &amp; TU Delft</span></p>
+        <p class="vita-role">MSc, Applied Mathematics</p>
+        <p class="vita-detail"><em>cum laude</em></p>
+      </li>
+      <li class="vita-item">
+        <p class="vita-tag"><span class="vita-date">summer 2025</span><span class="vita-org">JuliaReach</span></p>
+        <p class="vita-role">Google Summer of Code</p>
+        <p class="vita-detail">Reachability analysis</p>
+      </li>
+      <li class="vita-item">
+        <p class="vita-tag"><span class="vita-date">2024 – 2025</span><span class="vita-org">TU Delft</span></p>
+        <p class="vita-role">Graduate Teaching Assistant</p>
+        <p class="vita-detail">HPC: MPI, OpenMP, CUDA</p>
+      </li>
+      <li class="vita-item">
+        <p class="vita-tag"><span class="vita-date">2021 – 2024</span><span class="vita-org">TU Delft</span></p>
+        <p class="vita-role">BSc, Aerospace Engineering</p>
+        <p class="vita-detail">Minor in Computational Science</p>
+      </li>
+    </ol>
   </section>
 
-  <section class="content-section projects-section" id="projects" aria-labelledby="projects-title">
-    <div class="section-heading">
-      <p class="eyebrow">Selected work</p>
-      <h2 id="projects-title">Projects & Publications</h2>
+  <section class="home-section" id="notes" aria-labelledby="notes-title">
+    <h2 class="home-heading" id="notes-title">Notes</h2>
+    {% assign visible_posts = site.posts | where_exp:"post", "post.hidden != true" %}
+    <div class="writing-list">
+      {% for post in visible_posts limit:3 %}
+        <article class="writing-item">
+          <p class="writing-date">{{ post.date | date: "%Y-%m" }}</p>
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+          <a class="writing-arrow" href="{{ post.url | relative_url }}" aria-label="Read {{ post.title }}">↗</a>
+        </article>
+      {% endfor %}
     </div>
-    <div class="project-grid">
-      <article class="project-card" id="project-svd">
-        <p class="project-meta">Numerical linear algebra · CUDA C++</p>
-        <h3>Multi-precision Block-Jacobi SVD</h3>
-        <p>Developed a mixed-precision SVD algorithm for modern GPUs. It achieved up to 5× speedup over a full-FP64 implementation while retaining comparable accuracy on ill-conditioned problems.</p>
-        <p class="project-footnote">MSc thesis · Jan – Jun 2026</p>
-        <a class="card-link" href="https://kth.diva-portal.org/smash/get/diva2:2103062/FULLTEXT01.pdf">Read the thesis <span aria-hidden="true">↗</span></a>
-      </article>
-      <article class="project-card">
-        <p class="project-meta">GPU computing · Julia</p>
-        <h3>Tile-Low-Rank GEMM in NextLA.jl</h3>
-        <p>Built GPU-enabled Tile-Low-Rank matrix multiplication routines and extended the open-source library’s structured linear algebra tools.</p>
-        <a class="card-link" href="{{ '/2026/08/20/gsoc-project-with-nextla/' | relative_url }}">Read the project write-up <span aria-hidden="true">↗</span></a>
-      </article>
-      <article class="project-card">
-        <p class="project-meta">Workshop paper · ARCH-COMP 2026</p>
-        <h3>ARCH-COMP26 Category Report: Continuous and Hybrid Systems with Linear Continuous Dynamics</h3>
-        <p>Co-authored the ARCH-COMP26 category report on continuous and hybrid systems with linear continuous dynamics, published in EPiC Series in Computing.</p>
-        <p class="project-footnote">EPiC Series in Computing, Vol. 110 · 2026</p>
-        <a class="card-link" href="https://easychair.org/publications/paper/hFjB/open">Read the workshop paper <span aria-hidden="true">↗</span></a>
-      </article>
-    </div>
+    <p class="notes-note"><a href="{{ '/writing/' | relative_url }}">all notes →</a></p>
   </section>
-
-  <p class="notes-note">Occasional technical notes and project logs: <a href="{{ '/writing/' | relative_url }}">browse the archive <span aria-hidden="true">→</span></a></p>
 </div>

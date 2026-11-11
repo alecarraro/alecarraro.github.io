@@ -12,12 +12,15 @@ redirect_from:
   organization on ReachabilityAnalysis.jl under the guidance of mentors 
   <a href="https://github.com/schillic">Christian Schilling</a> and 
   <a href="https://github.com/mforets">Marcelo Forets</a>.
+  The algorithm implemented in this project was later used in the ARCH-COMP 2026
+  friendly competition; see the
+  <a href="https://easychair.org/publications/paper/hFjB/open">ARCH-COMP26 category report</a>.
 </div>
 
 ## Table of Contents
 1. [Outline and Motivation](#outline-and-motivation)
 2. [Example](#example)
-3. [Contributions Overview](#contributions-overview)
+3. [Large Uncertainty](#large-uncertainty)
 4. [References](#references)
 5. [Appendix](#appendix)
 
@@ -214,8 +217,8 @@ To compare with the exact case, we can repeat the experiment with a matrix zonot
 
 ---
 
-## A Not-So-Successful Example
-For small uncertainty the algorithm behaves well, but with larger uncertainty the over-approximation deteriorates. For example, if we choose a matrix zonotope with large uncertainty such as:
+## Large Uncertainty
+For small uncertainty the flowpipe is tight, but with larger uncertainty the over-approximation becomes much more conservative. For example, if we choose a matrix zonotope with large uncertainty such as:
 
 $$
 \mathcal{A} = 
@@ -224,24 +227,29 @@ $$
 \quad c \in [-1,1].
 $$
 
-The results look quite bad:
+the reach sets become much wider:
 
 <figure>
   <img src="{{ '/assets/images/gsoc-2025/all-generators-comparison.png' | relative_url }}" alt="Reachability plot" width="500">
   <figcaption>Figure 2: Reachable set over time for exact and uncertain dynamics. Every third reach set is plotted.</figcaption>
 </figure>
 
-In this case we observe a strange behavior: the reach sets quickly bloat, growing faster than they contract around the fixed point. Interestingly, increasing the maximum order parameter seems to mitigate the bloating somewhat.
+The reach sets bloat quickly, growing faster than they contract around the fixed point. Increasing the maximum order parameter mitigates the bloating somewhat.
 
-### What is going wrong?
-Together with my mentors, I investigated this issue for several weeks. The problem appears to stem from the repeated use of the `reduce_order` method. Keeping it brief, at each step the algorithm computes and applies the matrix zonotope exponential $$e^{\mathcal{A}}$$ to propagate the state set forward in time. This increases the number of generators in the SPZ, forcing order reduction to keep the complexity manageable. However, repeated reduction seems to discard generators that capture important information, while the remaining ones grow excessively under successive exponentials.
+### Why do the sets bloat?
+Together with my mentors, I investigated this behavior for several weeks. At first it looked like a bug, but it turned out to be a limitation of the algorithm itself rather than of our implementation: the result is a correct, if conservative, over-approximation.
 
-This is quite puzzling, since `reduce_order` works well in other parts of the library. At this point it is still unclear to us whether this instability reflects a deeper stability issue, perhaps some relationship between the amount of uncertainty and the step size, similar to time-stepping constraints in ODE solvers, or whether it comes from a subtle bug in the implementation of one of the many building blocks. What is certain is that the issue seems specific to this algorithm, which is still very new and, before our work, had only been implemented in the library [CORA](https://tumcps.github.io/CORA/).
+The bloating comes from the repeated use of order reduction. At each step the algorithm computes and applies the matrix zonotope exponential $$e^{\mathcal{A}}$$ to propagate the state set forward in time. This increases the number of generators in the SPZ, so order reduction is needed to keep the complexity manageable. With large uncertainty in $$\mathcal{A}$$, each reduction discards generators that capture important information, while the remaining ones grow under successive exponentials, and the over-approximation error accumulates over time. This is also why a larger `max_order` helps: fewer generators are discarded at each step.
+
+The algorithm is still very new and, before our work, had only been implemented in the library [CORA](https://tumcps.github.io/CORA/).
 
 
-### What's next?
-After GSoC, we made a plan to further investigate the problem and eventually turn the algorithm into a stable release.
-I have also implemented the non-homogeneous case $$x' = \mathcal{A}x + \mathcal{B}u$$. However, it is not ready for release yet, since some implementation details still require further discussion with the mentors.
+### Update (March 2026)
+
+Since GSoC, the work has been completed: the non-homogeneous case $$x' = \mathcal{A}x + \mathcal{B}u$$ is now implemented as well, and both versions of the algorithm are merged into the [ReachabilityAnalysis.jl](https://github.com/JuliaReach/ReachabilityAnalysis.jl) codebase.
+
+{% comment %}
+Contributions table, kept for the GSoC evaluation; hidden from the post.
 
 ---
 
@@ -289,6 +297,9 @@ In the tables below I summarize my contributions to the different packages in th
 |----------|------|-------|
 | Add `parametric` systems | [#332](https://github.com/JuliaReach/MathematicalSystems.jl/pull/332) | Feature |
 | Add HLBS25 algorithm for linear parametric systems | [#931](https://github.com/JuliaReach/ReachabilityAnalysis.jl/pull/931) | Feature |
+{% endcomment %}
+
+---
 
 ## References
 [1] Yushen Huang, Ertai Luo, Stanley Bak, Yifan Sun, *Reachability analysis for linear systems with uncertain parameters using polynomial zonotopes*, Nonlinear Analysis: Hybrid Systems, Volume 56, 2025, 101571, ISSN 1751-570X. [DOI](https://doi.org/10.1016/j.nahs.2024.101571)

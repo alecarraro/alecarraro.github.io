@@ -20,10 +20,15 @@
   <link rel="stylesheet" href="{{ '/public/css/syntax.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/lanyon.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/profile.css' | relative_url }}">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+  <link rel="stylesheet" href="{{ '/public/css/gpu.css' | relative_url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
+  <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ '/public/apple-touch-icon-precomposed.png' | relative_url }}">
-  <link rel="shortcut icon" href="{{ '/public/favicon.ico' | relative_url }}">
+  <link rel="icon" href="{{ '/public/favicon.ico' | relative_url }}" sizes="32x32">
+  <link rel="icon" href="{{ '/public/favicon.svg' | relative_url }}" type="image/svg+xml">
 
   <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ '/atom.xml' | relative_url }}">
 
@@ -38,5 +43,9 @@
   </script>
   {% endif %}
 
+  <script>
+    // Keep short in-line formulas such as b = N/16 on one line.
+    window.MathJax = { output: { linebreaks: { inline: false } } };
+  </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 </head>
