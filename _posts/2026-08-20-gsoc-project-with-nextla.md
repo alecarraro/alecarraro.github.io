@@ -25,7 +25,6 @@ image: /assets/images/gsoc-2026/tlr-fold.png
 5. [Larger GEMMs need workspace](#larger-gemms-need-workspace)
 6. [How close to dense GEMM?](#how-close-to-dense-gemm)
 7. [Next steps](#next-steps)
-8. [Conclusion](#conclusion)
 
 ## Why tile low-rank matrices?
 
@@ -155,9 +154,7 @@ There is also a historical implementation difference. KBLAS was developed in 201
 
 ## Turning tile loops into GEMM dimensions
 
-The key idea is to change how we traverse the tile iteration space. In the baseline formulation, each contraction tile $$k$$ is processed separately, and the output is accumulated through small, rank-limited GEMMs. But some of these tile iterations can instead become dimensions of larger GEMMs. This changes the granularity of the computation, which operations run independently, and how the reduction is performed.
-
-Making this transformation efficient also requires a different memory layout. The factors must be stored so that the tile dimensions we want to fuse are already contiguous in memory. The design therefore combines a reorganisation of the computation with a complementary packing of the low-rank factors.
+The key idea is to change how we traverse the tile iteration space. In the baseline formulation, each contraction tile $$k$$ is processed separately, and the output is accumulated through small, rank-limited GEMMs. But some of these tile iterations can instead become dimensions of larger GEMMs. This changes the granularity of the computation, which operations run independently, and how the reduction is performed. Making this transformation efficient also requires a different memory layout. The factors must be stored so that the tile dimensions we want to fuse are already contiguous in memory. The design therefore combines a reorganisation of the computation with a complementary packing of the low-rank factors.
 
 ### Two opportunities for fusion
 
@@ -505,25 +502,31 @@ For the large tiles in the first benchmarks, $$b=4096$$ and $$8192$$, the predic
 
 To check the model, I ported the schedule to C++, added per-stage timers and Nsight ranges, and profiled the computation on an H200 NVL.
 
-For each stage, the roofline time is the larger of its FLOPs divided by measured dense-GEMM throughput and its bytes divided by measured copy bandwidth. In the following tables, the percentage after each measured time is the ratio of its roofline time to its measured time. Higher percentages indicate execution closer to the modelled roof.
+For each stage, the roofline time is the larger of its FLOPs divided by measured dense-GEMM throughput and its bytes divided by measured copy bandwidth. The figure below splits each stage's measured time into its roofline time and the time above it: the shorter the pale part, the closer the stage runs to its roof.
+
+<figure>
+  <a href="{{ '/assets/images/gsoc-2026/tlr-stage-time.svg' | relative_url }}">
+    <img src="{{ '/assets/images/gsoc-2026/tlr-stage-time.svg' | relative_url }}"
+         alt="Horizontal stacked bars of FP32 time per stage at N = 65,536 for four configurations. Constant ranks with b = 4096: 868 ms, parity 92%. Skewed ranks with b = 8192: 604 ms, parity 85%. Decaying ranks with b = 1024: 710 ms, parity 78%. Decaying ranks with b = 512: 879 ms, parity 60%. Stage 3 dominates every bar; the time Stage 2 spends above its roof grows from a few milliseconds with large tiles to 88 and 243 ms with small tiles."
+         width="880">
+  </a>
+  <figcaption>
+    Measured FP32 time per stage at \(N=65{,}536\) on the H200. The dark part of
+    each segment is the stage's roofline time, the pale part the measured time
+    above it. The bottom two bars use production tile sizes with ranks that
+    decay away from the diagonal, defined below.
+  </figcaption>
+</figure>
 
 ### Large tiles: close to dense-GEMM throughput
 
-| FP32, $$N=65{,}536$$ | Constant, $$b=4096$$ | Skewed, $$b=8192$$ |
-|:--|--:|--:|
-| Stage 1 | 57 ms (78%) | 27 ms (73%) |
-| Stage 2 | 51 ms (87%) | 27 ms (75%) |
-| Stage 3 | 759 ms (94%) | 550 ms (86%) |
-| Parity | 92% | 85% |
-| Round trip of $$T$$ / Stage 3 | 1.1% | 0.5% |
+The top two bars of the figure use the large tiles of the KBLAS comparison. The constant-rank case reproduces the approximately 92% parity observed on the H100. The skewed-rank case reaches 85% in this separate H200 profiling run.
 
-The constant-rank case reproduces the approximately 92% parity observed on the H100. The skewed-rank case reaches 85% in this separate H200 profiling run.
-
-At these tile sizes, Stages 1 and 3 are large, compute-intensive GEMMs. Stage 2 is also sufficiently large to achieve relatively good throughput.
+At these tile sizes, Stages 1 and 3 are large, compute-intensive GEMMs. Stage 2 is also sufficiently large to achieve relatively good throughput, at 75–87% of its roof.
 
 Most of the remaining overhead comes from Stage 3, which accounts for 71–85% of the summed excess time above the individual stage roofline bounds. Although its GEMMs are much larger than the baseline's tile updates, they still have reduction dimensions of a few thousand rather than $$N$$, and achieve 86–94% of the dense-GEMM reference throughput.
 
-The round trip of $$T$$ costs only about 1% of Stage 3's time, consistent with the model. At these sizes, fusing away this intermediate would not recover most of the remaining gap.
+The round trip of $$T$$ costs only 0.5–1.1% of Stage 3's time, consistent with the model. At these sizes, fusing away this intermediate would not recover most of the remaining gap.
 
 ### Small tiles: Stage 2 becomes the bottleneck
 
@@ -538,28 +541,7 @@ r_{ij}=\max\left(\frac{b}{32},
 \frac{b}{4(1+\lvert i-j\rvert)}\right).
 $$
 
-| FP32, $$N=65{,}536$$, decaying ranks | $$b=1024$$ | $$b=512$$ |
-|:--|--:|--:|
-| Stage 1 | 35 ms (65%) | 37 ms (56%) |
-| Stage 2 | 112 ms (22%) | 290 ms (16%) |
-| Stage 3 | 563 ms (90%) | 552 ms (89%) |
-| Parity | 78% | 60% |
-| Round trip of $$T$$ / Stage 3 | 4.2% | 8.3% |
-
-<figure>
-  <a href="{{ '/assets/images/gsoc-2026/tlr-stage-time.svg' | relative_url }}">
-    <img src="{{ '/assets/images/gsoc-2026/tlr-stage-time.svg' | relative_url }}"
-         alt="Horizontal stacked bars of FP32 time per stage at N = 65,536 for four configurations. Constant ranks with b = 4096: 868 ms, parity 92%. Skewed ranks with b = 8192: 604 ms, parity 85%. Decaying ranks with b = 1024: 710 ms, parity 78%. Decaying ranks with b = 512: 879 ms, parity 60%. Stage 3 dominates every bar; the time Stage 2 spends above its roof grows from a few milliseconds with large tiles to 88 and 243 ms with small tiles."
-         width="880">
-  </a>
-  <figcaption>
-    Measured FP32 time per stage at \(N=65{,}536\) on the H200, for both tables
-    above. The dark part of each segment is the stage's roofline time, the pale
-    part the measured time above it.
-  </figcaption>
-</figure>
-
-The bottleneck changes substantially.
+The bottom two bars of the figure above show that the bottleneck changes substantially. Parity drops to 78% at $$b=1024$$ and 60% at $$b=512$$.
 
 Stage 3 still achieves around 90% of its roofline performance, even with smaller tiles. The larger GEMM formulation continues to work well.
 
@@ -573,7 +555,7 @@ The intermediate memory traffic also becomes more significant, reaching 4.2–8.
 
 The profiling reveals the remaining limitation of the current iteration-space reorganisation: **Stages 1 and 3 operate on larger GEMMs, but Stage 2 still operates on individual low-rank tile products.**
 
-Two optimisations follow naturally.
+The natural next step is to apply the same idea to Stage 2.
 
 ### Fuse more iterations into Stage 2
 
@@ -611,6 +593,9 @@ A custom GEMM epilogue that distributes these row blocks to their corresponding 
 
 This extends the same principle used throughout the design: move another tile iteration into a GEMM dimension, with the output layout adapted accordingly.
 
+{% comment %}
+Fusing Stages 2 and 3, left out of the post. Remove the comment tags to publish it.
+
 ### Eliminate the intermediate round trip
 
 The second opportunity is to fuse Stage 2 with Stage 3, producing blocks of $$T$$ in shared memory immediately before they are consumed.
@@ -618,6 +603,7 @@ The second opportunity is to fuse Stage 2 with Stage 3, producing blocks of $$T$
 The difficulty is reuse. Each column panel of $$T_i$$ is needed by all thread blocks covering the $$b$$ output rows of tile row $$i$$. A fused implementation would therefore need either to recompute these intermediate values in multiple blocks or share them, potentially using distributed shared memory within a Hopper thread-block cluster.
 
 Such a kernel could eliminate the global-memory round trip of $$T$$, an increasingly useful optimisation as tile sizes decrease. However, the measurements suggest that improving the granularity of Stage 2 is the more important first step.
+{% endcomment %}
 
 ### A note on FP16
 
@@ -680,11 +666,15 @@ A GEMM epilogue that writes each block of $$P$$ straight to its tile-column
 position would remove the permutation, the same fix as for Stage 2.
 {% endcomment %}
 
+{% comment %}
+Conclusion, left out of the post. Remove the comment tags to publish it.
+
 ## Conclusion
 
 The per-tile algorithm builds a TLR product from GEMMs that each have a single tile rank as one of their dimensions, so their arithmetic intensity is limited by the rank rather than the tile size, and it updates the output once per contraction tile. Reorganising the iteration space removes both limits for most of the work. Packing outer factors by tile row and inner factors by tile column turns the contraction over $$k$$ into the reduction dimension of one GEMM per tile row, and the coupling products of each contraction tile into one GEMM, without copies or padding to a common rank. In FP32 on an H100, this brings the product to 92% of dense-GEMM throughput and up to 2.58× faster than KBLAS.
 
 The broader lesson is to choose the storage layout from the contractions an algorithm needs, so that loops over tiles can become GEMM dimensions. Stage 2 is the part of the product still computed tile by tile, and with smaller tiles it becomes the main bottleneck; applying the same idea to it is the next step.
+{% endcomment %}
 
 ## References
 
