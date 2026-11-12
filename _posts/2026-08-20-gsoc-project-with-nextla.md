@@ -53,9 +53,7 @@ tuning parameter [1].
 
 ### The GEMM inside TLR Cholesky
 
-Cholesky factorisation is one of the main computational workloads involving TLR matrices, particularly in applications such as Gaussian process modelling and spatial statistics [1, 3]. Much of its computational cost comes from matrix–matrix multiplications (GEMMs), making their efficient implementation critical to performance.
-
-In left-looking TLR Cholesky, each diagonal tile is updated using contributions from all previously factorised tiles to its left:
+Cholesky factorisation is one of the main computational workloads involving TLR matrices, particularly in applications such as Gaussian process modelling and spatial statistics [1, 3]. Much of its computational cost comes from matrix–matrix multiplications (GEMMs), making their efficient implementation critical to performance. In left-looking TLR Cholesky, each diagonal tile is updated using contributions from all previously factorised tiles to its left:
 
 $$
 A_{pp}\leftarrow A_{pp}-\sum_{t<p}L_{pt}L_{pt}^{T},
@@ -78,7 +76,6 @@ $$B$$ of size $$k\times n$$, and a dense $$C$$.
 Both operands are split into $$b\times b$$ tiles, a $$q_m\times q_k$$ grid for
 $$A$$ and a $$q_k\times q_n$$ grid for $$B$$.
 Square tiles keep the formulas short; nothing below depends on it.
-
 Every tile is stored as a pair of low-rank factors:
 
 $$
@@ -89,13 +86,11 @@ $$
 
 We call $$U$$ and $$W$$ the *outer* factors and $$V$$ and $$Z$$ the *inner*
 factors.
-
 A dot in place of an index means a sum over it.
 For example, $$r^A_{i\cdot}=\sum_k r^A_{ik}$$ is the total rank of tile row
 $$i$$ of $$A$$, and $$r^A_{\cdot k}=\sum_i r^A_{ik}$$ that of tile column
 $$k$$.
 These sums will be the widths of the panels the GEMMs operate on.
-
 Each output tile is a sum of low-rank products,
 
 $$
@@ -119,7 +114,6 @@ $$
 
 The intensity is set by the smallest of the three dimensions.
 If $$C$$ is also read ($$\beta\neq0$$), the $$MN$$ term counts twice.
-
 A GEMM is bandwidth-bound when $$I$$ is below the ridge point
 $$\rho=P/\mathrm{BW}$$, peak throughput $$P$$ divided by memory bandwidth
 $$\mathrm{BW}$$.
@@ -128,7 +122,7 @@ $$\rho\approx16$$ FLOP/B.
 
 ### The per-tile algorithm in KBLAS and H2OPUS-TLR
 
-Both KBLAS [4] and H2OPUS-TLR [1] compute dense-output TLR GEMM as a sum of low-rank tile products. For each contraction index $$k$$, they multiply the factors of $$A_{ik}$$ and $$B_{kj}$$ and accumulate the contribution into the output tile $$C_{ij}$$. The computation can be expressed as three batched GEMMs per contraction step:
+Both KBLAS [4] and H2OPUS-TLR [1] compute dense-output TLR GEMM as a sum of low-rank tile products. For each contraction index $$k$$, they multiply the factors of $$A_{ik}$$ and $$B_{kj}$$ and accumulate the contribution into the output tile $$C_{ij}$$. The computation can be expressed as three GEMMs per contraction step, each batched across the output tiles with dimensions set by the individual tile ranks:
 
 ```julia
 for k in 1:q_k
@@ -139,8 +133,6 @@ for k in 1:q_k
     C[i, j] = α * U[i, k] * T[i, j] + βk * C[i, j]  # (b,   b,   r_A)
 end
 ```
-
-Here, the GEMMs are batched across the output tiles, with dimensions determined by the individual tile ranks.
 
 ### What limits the per-tile algorithm
 
@@ -158,9 +150,7 @@ The key idea is to change how we traverse the tile iteration space. In the basel
 
 ### Two opportunities for fusion
 
-Consider first the dense update, which accounts for most of the arithmetic and has the lowest intensity in the baseline.
-
-For a fixed output tile row $$i$$, the baseline accumulates $$\sum_k U_{ik}T_{ik}$$ one contraction tile at a time, where $$T_{ik}=[T_{ik1}\;\cdots\;T_{ikq_n}]$$. But the same sum can be expressed as a single matrix multiplication:
+Consider first the dense update, which accounts for most of the arithmetic and has the lowest intensity in the baseline. For a fixed output tile row $$i$$, the baseline accumulates $$\sum_k U_{ik}T_{ik}$$ one contraction tile at a time, where $$T_{ik}=[T_{ik1}\;\cdots\;T_{ikq_n}]$$. But the same sum can be expressed as a single matrix multiplication:
 
 $$
 \sum_k U_{ik}T_{ik}=
@@ -192,17 +182,11 @@ S_k=V_{:,k}^{T}W_{k,:}=
 \begin{bmatrix}W_{k1}&\cdots&W_{kq_n}\end{bmatrix}.
 $$
 
-Now the tile indices $$i$$ and $$j$$ become the row and column dimensions of one GEMM. The $$q_mq_n$$ individual coupling products are computed together, with shape $$(r^A_{\cdot k},r^B_{k\cdot},b)$$.
-
-Both transformations preserve the algebraic computation, but change how its iterations are mapped to GEMMs. The remaining question is how to expose these larger matrices without gathering or copying the individual factors.
+Now the tile indices $$i$$ and $$j$$ become the row and column dimensions of one GEMM. The $$q_mq_n$$ individual coupling products are computed together, with shape $$(r^A_{\cdot k},r^B_{k\cdot},b)$$. Both transformations preserve the algebraic computation, but change how its iterations are mapped to GEMMs. The remaining question is how to expose these larger matrices without gathering or copying the individual factors.
 
 ### Packing factors for the new traversal
 
-The two fusions require complementary storage orders.
-
-The final update needs $$U_{i1},\dots,U_{iq_k}$$ contiguous along each tile row of $$A$$. The coupling GEMM needs $$V_{1k},\dots,V_{q_mk}$$ contiguous along each tile column of $$A$$, together with $$W_{k1},\dots,W_{kq_n}$$ along each tile row of $$B$$.
-
-This gives one packing rule for both operands:
+The two fusions require complementary storage orders. The final update needs $$U_{i1},\dots,U_{iq_k}$$ contiguous along each tile row of $$A$$. The coupling GEMM needs $$V_{1k},\dots,V_{q_mk}$$ contiguous along each tile column of $$A$$, together with $$W_{k1},\dots,W_{kq_n}$$ along each tile row of $$B$$. This gives one packing rule for both operands:
 
 - **Outer factors** $$U$$ and $$W$$ are packed by tile row.
 - **Inner factors** $$V$$ and $$Z$$ are packed by tile column.
@@ -219,9 +203,7 @@ This gives one packing rule for both operands:
   </figcaption>
 </figure>
 
-Each factor is column-major, and each tile occupies exactly its own rank's worth of columns. The two packing orders do not conflict because the fusions use outer and inner factors in complementary directions.
-
-CuTe's shape:stride notation [9, 10] makes the connection between the packed layout and the larger GEMMs precise. For a uniform rank $$r$$, tile row $$i$$ of the outer factors has layout
+Each factor is column-major, and each tile occupies exactly its own rank's worth of columns. The two packing orders do not conflict because the fusions use outer and inner factors in complementary directions. CuTe's shape:stride notation [9, 10] makes the connection between the packed layout and the larger GEMMs precise. For a uniform rank $$r$$, tile row $$i$$ of the outer factors has layout
 
 $$
 U_{i,:}:\quad(b,(r,q_k)):(1,(d,dr)),
@@ -233,23 +215,17 @@ $$
 (r,q_k):(d,dr)\;\longrightarrow\;(rq_k):d,
 $$
 
-so the packed tile row is already an ordinary $$b\times rq_k$$ matrix. The tile index and the rank index merge into one GEMM dimension without a copy.
-
-With variable ranks, the regular nested shape no longer applies, but the packed panel remains one matrix:
+so the packed tile row is already an ordinary $$b\times rq_k$$ matrix. The tile index and the rank index merge into one GEMM dimension without a copy. With variable ranks, the regular nested shape no longer applies, but the packed panel remains one matrix:
 
 $$
 U_{i,:}:\quad(b,r^A_{i\cdot}):(1,d).
 $$
 
-The prefix sum $$p^A_i(k)=\sum_{t<k}r^A_{it}$$ locates tile $$k$$ within the panel. On tensor-core paths, stored ranks are rounded up to multiples of 8 for FP16/BF16 or 4 for TF32, keeping factor offsets 16-byte aligned. The logical ranks remain unchanged.
-
-The important property is that each fused GEMM sees a contiguous matrix operand, even when the original tiles have different ranks.
+The prefix sum $$p^A_i(k)=\sum_{t<k}r^A_{it}$$ locates tile $$k$$ within the panel. On tensor-core paths, stored ranks are rounded up to multiples of 8 for FP16/BF16 or 4 for TF32, keeping factor offsets 16-byte aligned. The logical ranks remain unchanged. The important property is that each fused GEMM sees a contiguous matrix operand, even when the original tiles have different ranks.
 
 ## Putting it together: three stages
 
-With the factors packed in these complementary orders, the multiplication can be organised into three stages. The first fuses the coupling products, the second computes the remaining tile products directly into the workspace required by the final update, and the third folds the contraction over $$k$$ into a GEMM reduction.
-
-The figure follows one example through all three stages: $$A$$ has the $$3\times3$$ tile grid and ranks of the first figure, and $$B$$ a $$3\times2$$ tile grid. Extents that are ranks are drawn to scale; the tile size $$b$$ is not.
+With the factors packed in these complementary orders, the multiplication can be organised into three stages. The first fuses the coupling products, the second computes the remaining tile products directly into the workspace required by the final update, and the third folds the contraction over $$k$$ into a GEMM reduction. The figure follows one example through all three stages: $$A$$ has the $$3\times3$$ tile grid and ranks of the first figure, and $$B$$ a $$3\times2$$ tile grid. Extents that are ranks are drawn to scale; the tile size $$b$$ is not.
 
 <figure>
   <a href="{{ '/assets/images/gsoc-2026/tlr-pipeline.svg' | relative_url }}">
@@ -276,9 +252,7 @@ S_k=V_{:,k}^{T}W_{k,:},
 (M,N,K)=(r^A_{\cdot k},r^B_{k\cdot},b).
 $$
 
-Block $$(i,j)$$ of $$S_k$$ is exactly $$S_{ikj}=V_{ik}^TW_{kj}$$. The tile-row and tile-column iterations have been absorbed into the matrix dimensions, replacing $$q_mq_n$$ small products with one GEMM for each $$k$$.
-
-The $$q_k$$ coupling GEMMs are independent and can be submitted together in one grouped call.
+Block $$(i,j)$$ of $$S_k$$ is exactly $$S_{ikj}=V_{ik}^TW_{kj}$$. The tile-row and tile-column iterations have been absorbed into the matrix dimensions, replacing $$q_mq_n$$ small products with one GEMM for each $$k$$. The $$q_k$$ coupling GEMMs are independent and can be submitted together in one grouped call to `cublasGemmGroupedBatchedEx` [8, 11].
 
 ### Stage 2: Produce the final GEMM's input
 
@@ -292,9 +266,7 @@ $$
 
 These $$q_mq_kq_n$$ independent products are bucketed by shape and submitted as one grouped GEMM. Unlike Stages 1 and 3, the individual tile indices remain separate GEMM tasks.
 
-The crucial detail is where their results are written. Each output tile row $$i$$ has a workspace matrix $$T_i$$ of size $$r^A_{i\cdot}\times n$$. Task $$(i,k,j)$$ writes directly into the block beginning at row offset $$p^A_i(k)$$ and column offset $$(j-1)b$$.
-
-The row blocks of $$T_i$$ therefore have exactly the same heights as the corresponding column blocks of $$U_{i,:}$$. No separate packing pass is needed between this stage and the final GEMM.
+The crucial detail is where their results are written. Each output tile row $$i$$ has a workspace matrix $$T_i$$ of size $$r^A_{i\cdot}\times n$$. Task $$(i,k,j)$$ writes directly into the block beginning at row offset $$p^A_i(k)$$ and column offset $$(j-1)b$$. The row blocks of $$T_i$$ therefore have exactly the same heights as the corresponding column blocks of $$U_{i,:}$$. No separate packing pass is needed between this stage and the final GEMM.
 
 ### Stage 3: Fold the contraction into the reduction
 
@@ -306,9 +278,7 @@ C_{i,:}\leftarrow\alpha\,U_{i,:}\,T_i+\beta\,C_{i,:},
 (M,N,K)=(b,n,r^A_{i\cdot}).
 $$
 
-The contraction index $$k$$ is no longer an explicit loop around the dense update. It has become part of the GEMM reduction dimension, which now spans the sum of all tile ranks in the row.
-
-Each element of $$C$$ is read, scaled by $$\beta$$, and written exactly once. The three stages can be expressed as:
+The contraction index $$k$$ is no longer an explicit loop around the dense update. It has become part of the GEMM reduction dimension, which now spans the sum of all tile ranks in the row. Each element of $$C$$ is read, scaled by $$\beta$$, and written exactly once. The three stages can be expressed as:
 
 ```julia
 for (I, J) in runs  # rectangles of output tiles that fit the workspace
@@ -338,11 +308,7 @@ The new formulation computes the same algebraic product, but reorganises its exe
 | Calls | Repeated batches for each $$k$$ | 3 grouped calls per run |
 | Passes over $$C$$ in KBLAS | $$q_k$$ | 1 |
 
-The largest change is in arithmetic intensity. In Stages 1 and 3, a single tile rank is replaced by a sum of ranks, increasing the dimensions of the GEMMs without increasing the algebraic work. The intensity grows roughly with the number of tiles fused, until the tile size $$b$$ becomes the limiting dimension.
-
-For example, with $$N=4096$$, $$b=256$$, and $$r=16$$, the dense update goes from 3.8 FLOP/B in KBLAS to 62 FLOP/B in Stage 3: from roughly a quarter of the FP32 ridge point to four times it.
-
-Stage 2 remains rank-limited, with arithmetic intensity around $$r/e$$ FLOP/B. Grouping these tasks improves GPU utilisation and reduces launch overhead, but does not change their arithmetic intensity.
+The largest change is in arithmetic intensity. Stages 1 and 3 replace a single tile rank with a sum of ranks, so their intensity grows with the number of tiles fused until the tile size $$b$$ becomes the limiting dimension, while Stage 2 keeps the per-tile intensity.
 
 <figure>
   <a href="{{ '/assets/images/gsoc-2026/tlr-intensity.svg' | relative_url }}">
@@ -360,28 +326,25 @@ Stage 2 remains rank-limited, with arithmetic intensity around $$r/e$$ FLOP/B. G
 
 ### Transposes without repacking
 
-A further consequence of the complementary packing rule is that it also works for transposed operands.
-
-Transposing a tile swaps its factors, $$(A^T)_{ik}=V_{ki}U_{ki}^T$$. The outer factors of $$A^T$$ in tile row $$i$$ are therefore the inner factors of $$A$$ in tile column $$i$$. Those factors are already contiguous under the packing rule.
-
-The transposed operand thus has the same required panel structure without any data movement. All three stages apply to `NN`, `NT`, `TN`, and `TT`.
-
-KBLAS also handles transposes cheaply, by swapping per-tile pointers. The difference here is that transposition preserves the contiguous panels needed for the fused GEMMs.
-
-The Cholesky update from [the first section](#the-gemm-inside-tlr-cholesky) is the `NT` case:
+The complementary packing also covers transposed operands. Transposing a tile swaps its factors, $$(A^T)_{ik}=V_{ki}U_{ki}^T$$, so the outer factors of $$A^T$$ in tile row $$i$$ are the inner factors of $$A$$ in tile column $$i$$, which are already contiguous. All three stages therefore apply to `NN`, `NT`, `TN`, and `TT` without moving data. The Cholesky update from [the first section](#the-gemm-inside-tlr-cholesky) is the `NT` case:
 
 $$
 C\leftarrow C-AA^T,
 \qquad A=L_{p,1:p-1}.
 $$
 
-It has one output tile and $$p-1$$ contraction tiles. Stage 3 becomes a single GEMM of shape $$(b,b,r^A_{1\cdot})$$, whereas the KBLAS formulation performs $$p-1$$ sequential contraction steps with a batch of one.
+It has one output tile and $$p-1$$ contraction tiles, so Stage 3 becomes a single GEMM of shape $$(b,b,r^A_{1\cdot})$$, whereas the KBLAS formulation performs $$p-1$$ sequential contraction steps with a batch of one.
+
+{% comment %}
+Grouped GEMM, left out of the post: Stages 1 and 2 already say each stage is one
+grouped call. Remove the comment tags to publish it.
 
 ### Grouping the remaining GEMMs
 
 The iterations that cannot be fused into GEMM dimensions are executed using `cublasGemmGroupedBatchedEx` [8, 11]. Unlike uniform batched GEMM, grouped GEMM supports different matrix shapes within a single call, allowing the independent tasks in each stage to be submitted together while preserving individual tile ranks.
 
 Grouped GEMM is an implementation choice rather than a requirement of the algorithm. The same computation could use separate GEMM calls for Stages 1 and 3 and uniform batches for Stage 2. The main gains come from reorganising the iteration space and packing the factors accordingly: larger GEMM dimensions, fewer passes over $$C$$, and no need to pad every tile to a common rank.
+{% endcomment %}
 
 ## Larger GEMMs need workspace
 
@@ -391,9 +354,7 @@ Fusing stages, for example by computing the coupling products and immediately co
 
 ### Choosing the association order
 
-So far, the algorithm has used the right-associative order $$U(SZ^T)$$. But the same product can be evaluated as $$(US)Z^T$$, changing the workspace needed for the intermediate results.
-
-In the left-associative order, Stage 2 computes
+So far, the algorithm has used the right-associative order $$U(SZ^T)$$. But the same product can be evaluated as $$(US)Z^T$$, changing the workspace needed for the intermediate results. In the left-associative order, Stage 2 computes
 
 $$
 T_{ikj}=U_{ik}S_{ikj}
@@ -406,11 +367,7 @@ C_{:,j}\leftarrow
 \alpha\,T_jZ_{:,j}^{T}+\beta\,C_{:,j},
 $$
 
-with one GEMM per tile column. The inner factors $$Z$$ are already packed by tile column, so this association requires no change to the factor layout.
-
-Stage 1 is identical in both orders, and Stage 2 performs the same amount of arithmetic. Only the final GEMM shapes and intermediate workspace differ.
-
-Let $$R^A=\sum_{i,k}r^A_{ik}$$ and $$R^B=\sum_{k,j}r^B_{kj}$$ denote the total ranks of the two operands. The final-stage FLOPs and workspace sizes are
+with one GEMM per tile column. The inner factors $$Z$$ are already packed by tile column, so this association requires no change to the factor layout. Stage 1 is identical in both orders, and Stage 2 performs the same amount of arithmetic. Only the final GEMM shapes and intermediate workspace differ. Let $$R^A=\sum_{i,k}r^A_{ik}$$ and $$R^B=\sum_{k,j}r^B_{kj}$$ denote the total ranks of the two operands. The final-stage FLOPs and workspace sizes are
 
 $$
 \begin{aligned}
@@ -425,25 +382,9 @@ The association with fewer final-stage FLOPs also requires less intermediate wor
 
 ### Scheduling within a memory budget
 
-Choosing the association order reduces workspace requirements, but may not be enough when the entire output is large. Instead of computing all of $$C$$ at once, the scheduler partitions it into **rectangles of output tiles** that fit within a prescribed workspace budget.
+Choosing the association order reduces workspace requirements, but may not be enough when the entire output is large. Instead of computing all of $$C$$ at once, the scheduler partitions it into **rectangles of output tiles** that fit within a prescribed workspace budget. For each rectangle, the scheduler selects the cheaper feasible association order and executes all three stages over the full contraction dimension. It chooses the widest feasible block of tile columns and packs the longest runs of tile rows that fit the remaining budget. Because the order is chosen per rectangle rather than per output tile, some tiles may cost a few more FLOPs than their own optimum; the scheduler accepts this in exchange for wider final GEMMs and better reuse of the packed factors.
 
-For each rectangle, the scheduler selects the cheaper feasible association order and executes all three stages over the full contraction dimension. It chooses the widest feasible block of tile columns and packs the longest runs of tile rows that fit the remaining budget.
-
-Crucially, partitioning the output does not partition the reduction. Each rectangle still includes every contraction tile $$k$$, so its output elements are accumulated in one final GEMM and written only once. Rectangles execute sequentially, reusing the same workspace arena.
-
-The rank prefixes, rectangle schedule, and grouped GEMM descriptors are computed once for a given rank structure and reused across products with that structure.
-
-There is one trade-off. The association order is selected per rectangle rather than per output tile. For an individual tile $$(i,j)$$, the final-stage arithmetic would be
-
-$$
-F_R^{ij}=2b^2r^A_{i\cdot},
-\qquad
-F_L^{ij}=2b^2r^B_{\cdot j}.
-$$
-
-Some tiles may therefore use an association that is more expensive than their individual optimum. Larger rectangles can increase this extra arithmetic, but also produce wider final GEMMs and improve reuse of the packed factors.
-
-The scheduler deliberately trades some additional FLOPs for larger GEMMs and less repeated data movement, while keeping intermediate storage within the available memory budget.
+Crucially, partitioning the output does not partition the reduction. Each rectangle still includes every contraction tile $$k$$, so its output elements are accumulated in one final GEMM and written only once. Rectangles execute sequentially, reusing the same workspace arena. The rank prefixes, rectangle schedule, and grouped GEMM descriptors are computed once for a given rank structure and reused across products with that structure.
 
 ## How close to dense GEMM?
 
@@ -451,13 +392,9 @@ The reorganisation has to pay off twice: against the per-tile baseline, and agai
 
 ### Comparison with KBLAS
 
-We first compare NextLA against KBLAS in FP32 on an NVIDIA H100.
+We first compare NextLA against KBLAS in FP32 on an NVIDIA H100. The first experiment uses constant ranks, with every tile having rank $$r=b/16$$ and tile size $$b=N/16$$. The dashed line shows **dense-GEMM parity**: the time of dense cuBLAS GEMM scaled by the ratio of executed FLOPs. It represents the time the compressed product would take if it achieved the same throughput as dense GEMM.
 
-The first experiment uses constant ranks, with every tile having rank $$r=b/16$$ and tile size $$b=N/16$$. The dashed line shows **dense-GEMM parity**: the time of dense cuBLAS GEMM scaled by the ratio of executed FLOPs. It represents the time the compressed product would take if it achieved the same throughput as dense GEMM.
-
-At $$N=65{,}536$$, NextLA reaches **92.1% of dense-GEMM parity**. Across the full 20-case constant-rank grid shared with KBLAS, it is faster in 19 cases, with a geometric-mean speedup of 1.44× and a maximum of 2.58×.
-
-The largest advantage appears at small matrix sizes, reaching 2.58× at $$N=4096$$. Here, KBLAS's rank-limited dense updates are bandwidth-bound, while NextLA's larger Stage 3 GEMMs achieve much higher arithmetic intensity.
+At $$N=65{,}536$$, NextLA reaches **92.1% of dense-GEMM parity**. Across the full 20-case constant-rank grid shared with KBLAS, it is faster in 19 cases, with a geometric-mean speedup of 1.44× and a maximum of 2.58×. The largest advantage appears at small matrix sizes, reaching 2.58× at $$N=4096$$. Here, KBLAS's rank-limited dense updates are bandwidth-bound, while NextLA's larger Stage 3 GEMMs achieve much higher arithmetic intensity.
 
 <figure>
   <a href="{{ '/assets/images/gsoc-2026/tlr-results-kblas.svg' | relative_url }}">
@@ -471,21 +408,13 @@ The largest advantage appears at small matrix sizes, reaching 2.58× at $$N=4096
   </figcaption>
 </figure>
 
-The second experiment considers variable ranks, which KBLAS cannot represent directly without padding. Each matrix has an $$8\times8$$ tile grid, with $$b=N/8$$ and ranks drawn from a skewed distribution in $$[b/32,b/16]$$. KBLAS must pad every tile to rank $$b/16$$, whereas NextLA uses each tile's individual rank.
-
-At $$N=65{,}536$$, NextLA is 20.5× faster than dense GEMM, compared with 12.9× for padded KBLAS, and again reaches approximately 92% of dense-GEMM parity.
+The second experiment considers variable ranks, which KBLAS cannot represent directly without padding. Each matrix has an $$8\times8$$ tile grid, with $$b=N/8$$ and ranks drawn from a skewed distribution in $$[b/32,b/16]$$. KBLAS must pad every tile to rank $$b/16$$, whereas NextLA uses each tile's individual rank. At $$N=65{,}536$$, NextLA is 20.5× faster than dense GEMM, compared with 12.9× for padded KBLAS, and again reaches approximately 92% of dense-GEMM parity.
 
 ### Where the time goes
 
-These results show that reorganising the tile iteration space can bring compressed matrix multiplication close to dense-GEMM throughput. But where does the remaining time go?
+These results show that reorganising the tile iteration space can bring compressed matrix multiplication close to dense-GEMM throughput. But where does the remaining time go? The three-stage formulation introduces intermediate matrices in global memory, and not every stage benefits equally from the larger GEMMs. In particular, Stage 2 still consists of individual rank-limited products. There are therefore two possible sources of overhead: moving intermediate data between stages, and executing GEMMs below their achievable throughput.
 
-The three-stage formulation introduces intermediate matrices in global memory, and not every stage benefits equally from the larger GEMMs. In particular, Stage 2 still consists of individual rank-limited products.
-
-There are therefore two possible sources of overhead: moving intermediate data between stages, and executing GEMMs below their achievable throughput.
-
-The main intermediate is the workspace $$T$$, written by Stage 2 and read by Stage 3. For the right-associative order, it contains $$nR^A$$ elements, where $$R^A$$ is the sum of the ranks of $$A$$.
-
-Let $$P$$ be the measured dense-GEMM throughput and $$\mathrm{BW}$$ the measured memory bandwidth. The time to write and read $$T$$, relative to the ideal compute time of Stage 3, is approximately
+The main intermediate is the workspace $$T$$, written by Stage 2 and read by Stage 3. For the right-associative order, it contains $$nR^A$$ elements, where $$R^A$$ is the sum of the ranks of $$A$$. Let $$P$$ be the measured dense-GEMM throughput and $$\mathrm{BW}$$ the measured memory bandwidth. The time to write and read $$T$$, relative to the ideal compute time of Stage 3, is approximately
 
 $$
 \frac{t_T}{t_3^{\mathrm{ideal}}}
@@ -496,13 +425,9 @@ $$
 \qquad \rho=\frac{P}{\mathrm{BW}}.
 $$
 
-The matrix size and total ranks cancel: the relative cost depends only on the tile size and the hardware balance $$\rho$$.
+The matrix size and total ranks cancel: the relative cost depends only on the tile size and the hardware balance $$\rho$$. For the large tiles in the first benchmarks, $$b=4096$$ and $$8192$$, the predicted cost is below 2% of Stage 3's ideal compute time. This suggests that eliminating the intermediate workspace alone would recover little of the remaining performance gap.
 
-For the large tiles in the first benchmarks, $$b=4096$$ and $$8192$$, the predicted cost is below 2% of Stage 3's ideal compute time. This suggests that eliminating the intermediate workspace alone would recover little of the remaining performance gap.
-
-To check the model, I ported the schedule to C++, added per-stage timers and Nsight ranges, and profiled the computation on an H200 NVL.
-
-For each stage, the roofline time is the larger of its FLOPs divided by measured dense-GEMM throughput and its bytes divided by measured copy bandwidth. The figure below splits each stage's measured time into its roofline time and the time above it: the shorter the pale part, the closer the stage runs to its roof.
+To check the model, I ported the schedule to C++, added per-stage timers and Nsight ranges, and profiled the computation on an H200 NVL. For each stage, the roofline time is the larger of its FLOPs divided by measured dense-GEMM throughput and its bytes divided by measured copy bandwidth. The figure below splits each stage's measured time into its roofline time and the time above it: the shorter the pale part, the closer the stage runs to its roof.
 
 <figure>
   <a href="{{ '/assets/images/gsoc-2026/tlr-stage-time.svg' | relative_url }}">
@@ -520,42 +445,26 @@ For each stage, the roofline time is the larger of its FLOPs divided by measured
 
 ### Large tiles: close to dense-GEMM throughput
 
-The top two bars of the figure use the large tiles of the KBLAS comparison. The constant-rank case reproduces the approximately 92% parity observed on the H100. The skewed-rank case reaches 85% in this separate H200 profiling run.
+The top two bars of the figure use the large tiles of the KBLAS comparison. The constant-rank case reproduces the approximately 92% parity observed on the H100. The skewed-rank case reaches 85% in this separate H200 profiling run. At these tile sizes, Stages 1 and 3 are large, compute-intensive GEMMs. Stage 2 is also sufficiently large to achieve relatively good throughput, at 75–87% of its roof.
 
-At these tile sizes, Stages 1 and 3 are large, compute-intensive GEMMs. Stage 2 is also sufficiently large to achieve relatively good throughput, at 75–87% of its roof.
-
-Most of the remaining overhead comes from Stage 3, which accounts for 71–85% of the summed excess time above the individual stage roofline bounds. Although its GEMMs are much larger than the baseline's tile updates, they still have reduction dimensions of a few thousand rather than $$N$$, and achieve 86–94% of the dense-GEMM reference throughput.
-
-The round trip of $$T$$ costs only 0.5–1.1% of Stage 3's time, consistent with the model. At these sizes, fusing away this intermediate would not recover most of the remaining gap.
+Most of the remaining overhead comes from Stage 3, which accounts for 71–85% of the summed excess time above the individual stage roofline bounds. Although its GEMMs are much larger than the baseline's tile updates, they still have reduction dimensions of a few thousand rather than $$N$$, and achieve 86–94% of the dense-GEMM reference throughput. The round trip of $$T$$ costs only 0.5–1.1% of Stage 3's time, consistent with the model. At these sizes, fusing away this intermediate would not recover most of the remaining gap.
 
 ### Small tiles: Stage 2 becomes the bottleneck
 
-The previous experiments use relatively large tiles. Production TLR applications often use smaller ones: H2OPUS-TLR, for example, uses $$b=1024$$ for 2D and $$b=512$$ for 3D covariance matrices [1].
-
-At these sizes, the predicted cost of materialising $$T$$ increases to approximately 6–12% of Stage 3's ideal time on the H100, or 4.7–9.3% on the H200, whose measured FP32 ridge point is about 12 FLOP/B.
-
-But smaller tiles also mean smaller individual products in Stage 2. To see which effect matters more, I repeated the H200 profiling with ranks that decay away from the diagonal:
+The previous experiments use relatively large tiles. Production TLR applications often use smaller ones: H2OPUS-TLR, for example, uses $$b=1024$$ for 2D and $$b=512$$ for 3D covariance matrices [1]. At these sizes, the predicted cost of materialising $$T$$ increases to approximately 6–12% of Stage 3's ideal time on the H100, or 4.7–9.3% on the H200, whose measured FP32 ridge point is about 12 FLOP/B. But smaller tiles also mean smaller individual products in Stage 2. To see which effect matters more, I repeated the H200 profiling with ranks that decay away from the diagonal:
 
 $$
 r_{ij}=\max\left(\frac{b}{32},
 \frac{b}{4(1+\lvert i-j\rvert)}\right).
 $$
 
-The bottom two bars of the figure above show that the bottleneck changes substantially. Parity drops to 78% at $$b=1024$$ and 60% at $$b=512$$.
+The bottom two bars of the figure above show that the bottleneck changes substantially. Parity drops to 78% at $$b=1024$$ and 60% at $$b=512$$. Stage 3 still achieves around 90% of its roofline performance, even with smaller tiles. The larger GEMM formulation continues to work well.
 
-Stage 3 still achieves around 90% of its roofline performance, even with smaller tiles. The larger GEMM formulation continues to work well.
-
-Stage 2, however, falls to just 16–22% of its roof. It executes $$q^3$$ separate tile products, with $$q=N/b$$: 262,144 GEMMs at $$b=1024$$ and over two million at $$b=512$$. Two dimensions of each GEMM are individual tile ranks, averaging only 44 and 20 in these experiments.
-
-Each thread block therefore has relatively little work, and the large number of small products makes Stage 2 inefficient. It now accounts for 57–76% of the summed excess time above the stage roofline bounds.
-
-The intermediate memory traffic also becomes more significant, reaching 4.2–8.3% of measured Stage 3 time. But it remains secondary to the inefficiency of Stage 2.
+Stage 2, however, falls to just 16–22% of its roof. It executes $$q^3$$ separate tile products, with $$q=N/b$$: 262,144 GEMMs at $$b=1024$$ and over two million at $$b=512$$. Two dimensions of each GEMM are individual tile ranks, averaging only 44 and 20 in these experiments. Each thread block therefore has relatively little work, and the large number of small products makes Stage 2 inefficient. It now accounts for 57–76% of the summed excess time above the stage roofline bounds. The intermediate memory traffic also becomes more significant, reaching 4.2–8.3% of measured Stage 3 time. But it remains secondary to the inefficiency of Stage 2.
 
 ## Next steps
 
-The profiling reveals the remaining limitation of the current iteration-space reorganisation: **Stages 1 and 3 operate on larger GEMMs, but Stage 2 still operates on individual low-rank tile products.**
-
-The natural next step is to apply the same idea to Stage 2.
+The profiling reveals the remaining limitation of the current iteration-space reorganisation: **Stages 1 and 3 operate on larger GEMMs, but Stage 2 still operates on individual low-rank tile products.** The natural next step is to apply the same idea to Stage 2.
 
 ### Fuse more iterations into Stage 2
 
@@ -581,17 +490,7 @@ S_{q_mkj}
 \end{bmatrix}Z_{kj}^{T},
 $$
 
-with shape
-
-$$
-(M,N,K)=(r^A_{\cdot k},b,r^B_{kj}).
-$$
-
-The obstacle is the output layout. Each row block of the result belongs to a different workspace matrix $$T_i$$, so the output cannot be written as one ordinary contiguous GEMM under the current layout.
-
-A custom GEMM epilogue that distributes these row blocks to their corresponding workspaces would remove this restriction. It would reduce the number of Stage 2 products from $$q_mq_kq_n$$ to $$q_kq_n$$, replacing many small GEMMs with fewer, taller ones.
-
-This extends the same principle used throughout the design: move another tile iteration into a GEMM dimension, with the output layout adapted accordingly.
+with shape $$(M,N,K)=(r^A_{\cdot k},b,r^B_{kj})$$. The obstacle is the output layout. Each row block of the result belongs to a different workspace matrix $$T_i$$, so the output cannot be written as one ordinary contiguous GEMM under the current layout. A custom GEMM epilogue that distributes these row blocks to their corresponding workspaces would remove this restriction. It would reduce the number of Stage 2 products from $$q_mq_kq_n$$ to $$q_kq_n$$, replacing many small GEMMs with fewer, taller ones. This extends the same principle used throughout the design: move another tile iteration into a GEMM dimension, with the output layout adapted accordingly.
 
 {% comment %}
 Fusing Stages 2 and 3, left out of the post. Remove the comment tags to publish it.
